@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f8f1e8">
+<meta name="robots" content="noindex">
+<title>Embers Host</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<style>
+  .linkbox { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-family: var(--mono); font-size: 14px; word-break: break-all; margin: 10px 0 0; text-align: left; }
+  .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  .row.left { justify-content: flex-start; }
+  details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-top: 14px; }
+  .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--peach); color: var(--accent-dark); }
+  .pill.closed { background: #e4e0d8; color: #5d554d; }
+</style>
+</head>
+<body>
+<div class="wrap" id="authView">
+  <div class="brand"><span class="dot"></span>Embers</div>
+  <h1>Host</h1>
+  <p class="muted">Create a party, or log in to one you already made.</p>
+
+  <div class="tabs">
+    <button id="tabCreate" class="on" type="button">New party</button>
+    <button id="tabLogin" type="button">Log in</button>
+  </div>
+
+  <form id="createForm" class="card">
+    <label for="cName">Party name</label>
+    <input id="cName" type="text" maxlength="80" placeholder="Joelle's Halloween Party" required>
+    <label for="cPass">Host password</label>
+    <input id="cPass" type="password" minlength="6" autocomplete="new-password" placeholder="At least 6 characters" required>
+    <div id="keyRow" class="hidden">
+      <label for="cKey">Creator passcode</label>
+      <input id="cKey" type="password" autocomplete="off">
+    </div>
+    <button type="submit">Create party</button>
+    <button type="button" id="showKey" class="ghost small" style="margin-top:10px;">I set a creator passcode</button>
+    <div id="createMsg" class="msg"></div>
+  </form>
+
+  <form id="loginForm" class="card hidden">
+    <label for="lCode">Party code</label>
+    <input id="lCode" type="text" autocapitalize="characters" maxlength="6" placeholder="ABC123" required>
+    <label for="lPass">Host password</label>
+    <input id="lPass" type="password" autocomplete="current-password" required>
+    <button type="submit">Log in</button>
+    <div id="loginMsg" class="msg"></div>
+  </form>
+</div>
+
+<div class="wrap wide hidden" id="dashView">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+    <div>
+      <div class="brand" style="margin-bottom:4px;"><span class="dot"></span>Embers host</div>
+      <h1 id="pName" style="margin:0;">Party</h1>
+    </div>
+    <button id="logout" class="ghost small" type="button">Log out</button>
+  </div>
+
+  <div class="card center">
+    <h2 style="margin-bottom:2px;">Invite link</h2>
+    <p class="muted small" style="margin:0;">Send this in your group chat. Guests tap it, join, and start shooting.</p>
+    <div class="linkbox" id="joinUrl"></div>
+    <div class="row">
+      <button id="copyLink" class="small" type="button">Copy link</button>
+      <button id="shareLink" class="ghost small hidden" type="button">Share...</button>
+    </div>
+    <p class="small muted" style="margin:16px 0 0;">Party code</p>
+    <div class="code" id="pCode"></div>
+    <p class="small muted" style="margin:0;">Guests also need this code (and their email) to open the gallery.</p>
+    <details>
+      <summary>Show a QR code for the same link</summary>
+      <canvas id="qr" style="margin-top:12px;border-radius:12px;"></canvas>
+      <div class="row"><button id="dlQr" class="ghost small" type="button">Download QR</button></div>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>When the roll ends</h2>
+    <p class="muted small" style="margin:0 0 4px;">After this time the camera closes for everyone, even if they have shots left. <span id="endState"></span></p>
+    <label for="endsAt">Camera closes at</label>
+    <input id="endsAt" type="datetime-local">
+    <div class="row left" id="presets">
+      <button class="ghost small" type="button" data-h="23">11 PM</button>
+      <button class="ghost small" type="button" data-h="24">Midnight</button>
+      <button class="ghost small" type="button" data-h="26">2 AM</button>
+    </div>
+    <div class="row left">
+      <button id="saveEnd" class="small" type="button">Save end time</button>
+      <button id="clearEnd" class="ghost small" type="button">Remove end time</button>
+      <button id="endNow" class="ghost small" type="button">End the roll now</button>
+    </div>
+    <div id="endMsg" class="msg"></div>
+  </div>
+
+  <div class="card">
+    <h2>Film look</h2>
+    <p class="muted small" style="margin:0;">How every photo from this party looks. Samples below use a made-up scene. You can change this until the party starts.</p>
+    <div class="looks" id="looks"></div>
+    <div id="lookMsg" class="msg"></div>
+  </div>
+
+  <div class="card">
+    <h2>Guests <span class="muted small" id="gCount"></span></h2>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Name</th><th>Email</th><th>Shots used</th><th>Joined</th></tr></thead>
+        <tbody id="gBody"></tbody>
+      </table>
+    </div>
+    <p class="muted small" id="gEmpty">Nobody has joined yet.</p>
+    <p class="muted small"><span id="photoCount">0</span> photos taken so far. Photos stay hidden until you release them.</p>
+  </div>
+
+  <div class="card">
+    <h2>Develop the film</h2>
+    <p class="muted small">This closes the camera for everyone and emails each guest a link to the shared gallery. You can press it again later to re-send the emails.</p>
+    <button id="release" class="danger" type="button">Send the gallery</button>
+    <div id="relMsg" class="msg"></div>
+    <a id="openGallery" class="btn ghost hidden" href="#" target="_blank" rel="noopener">Open the gallery</a>
+  </div>
+</div>
+
+<script src="/common.js"></script>
+<script src="/looks.js"></script>
+<script>
+(function () {
+  const KEY = 'filmcam_host_token';
+  let token = localStorage.getItem(KEY) || '';
+  let timer = null, current = null, lookKey = 'classic';
+
+  // ---- Auth tabs ----
+  function show(tab) {
+    const create = tab === 'create';
+    $('createForm').classList.toggle('hidden', !create);
+    $('loginForm').classList.toggle('hidden', create);
+    $('tabCreate').classList.toggle('on', create);
+    $('tabLogin').classList.toggle('on', !create);
+  }
+  $('tabCreate').addEventListener('click', () => show('create'));
+  $('tabLogin').addEventListener('click', () => show('login'));
+  $('showKey').addEventListener('click', () => { $('keyRow').classList.remove('hidden'); $('showKey').classList.add('hidden'); });
+
+  function err(el, e) { el.className = 'msg error'; el.textContent = e.message; }
+  function ok(el, t) { el.className = 'msg ok'; el.textContent = t; }
+
+  $('createForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    $('createMsg').className = 'msg'; $('createMsg').textContent = 'Creating...';
+    try {
+      const r = await api('/api/party-create', { method: 'POST', body: { name: $('cName').value, hostPassword: $('cPass').value, createKey: $('cKey').value } });
+      token = r.hostToken; localStorage.setItem(KEY, token);
+      enter();
+    } catch (x) { err($('createMsg'), x); }
+  });
+
+  $('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    $('loginMsg').className = 'msg'; $('loginMsg').textContent = 'Logging in...';
+    try {
+      const r = await api('/api/host-login', { method: 'POST', body: { code: $('lCode').value, password: $('lPass').value } });
+      token = r.hostToken; localStorage.setItem(KEY, token);
+      enter();
+    } catch (x) { err($('loginMsg'), x); }
+  });
+
+  $('logout').addEventListener('click', () => {
+    localStorage.removeItem(KEY); token = ''; clearInterval(timer);
+    $('dashView').classList.add('hidden'); $('authView').classList.remove('hidden');
+  });
+
+  async function enter() {
+    try {
+      buildLooks();
+      await refresh();
+      $('authView').classList.add('hidden');
+      $('dashView').classList.remove('hidden');
+      clearInterval(timer);
+      timer = setInterval(() => refresh().catch(() => {}), 15000);
+    } catch (x) {
+      localStorage.removeItem(KEY); token = '';
+    }
+  }
+
+  // ---- Film look picker ----
+  function buildLooks() {
+    const box = $('looks');
+    if (box.childElementCount) return;
+    Object.keys(LOOKS).forEach((k) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'look'; b.dataset.k = k;
+      const c = document.createElement('canvas'); c.width = 210; c.height = 280;
+      const t = document.createElement('b'); t.textContent = LOOKS[k].name;
+      const d = document.createElement('span'); d.textContent = LOOKS[k].blurb;
+      b.append(c, t, d);
+      b.addEventListener('click', () => pickLook(k));
+      box.appendChild(b);
+      drawSample(c, k);
+    });
+  }
+  function markLook() {
+    document.querySelectorAll('.look').forEach((b) => b.classList.toggle('on', b.dataset.k === lookKey));
+  }
+  async function pickLook(k) {
+    $('lookMsg').className = 'msg'; $('lookMsg').textContent = 'Saving...';
+    try {
+      await api('/api/host-settings', { method: 'POST', token, body: { filmLook: k } });
+      lookKey = k; markLook();
+      ok($('lookMsg'), 'Saved. Guests will see ' + LOOKS[k].name + '.');
+    } catch (x) { err($('lookMsg'), x); }
+  }
+
+  // ---- Roll end time ----
+  const pad = (n) => String(n).padStart(2, '0');
+  function toLocalInput(iso) {
+    const d = new Date(iso);
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+  async function saveEnds(body, msg) {
+    $('endMsg').className = 'msg'; $('endMsg').textContent = 'Saving...';
+    try {
+      await api('/api/host-settings', { method: 'POST', token, body });
+      ok($('endMsg'), msg);
+      await refresh(true);
+    } catch (x) { err($('endMsg'), x); }
+  }
+  $('presets').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+    const hours = Number(b.dataset.h);
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    d.setHours(hours);
+    if (d.getTime() < Date.now()) d.setDate(d.getDate() + 1);
+    $('endsAt').value = toLocalInput(d);
+  }));
+  $('saveEnd').addEventListener('click', () => {
+    if (!$('endsAt').value) { err($('endMsg'), new Error('Pick a date and time first.')); return; }
+    const t = new Date($('endsAt').value);
+    if (t.getTime() < Date.now() && !confirm('That time has already passed, so the camera will close right away. Save it anyway?')) return;
+    saveEnds({ endsAt: t.toISOString() }, 'Saved. The camera will close at ' + t.toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + '.');
+  });
+  $('clearEnd').addEventListener('click', () => { $('endsAt').value = ''; saveEnds({ endsAt: null }, 'Removed. The camera stays open until you send the gallery.'); });
+  $('endNow').addEventListener('click', () => {
+    if (confirm('Close the camera for everyone now? You can still send the gallery later.')) saveEnds({ closeNow: true }, 'The roll has ended.');
+  });
+
+  // ---- Dashboard ----
+  let editingEnd = false;
+  $('endsAt').addEventListener('focus', () => { editingEnd = true; });
+
+  async function refresh(forceEnd) {
+    const r = await api('/api/host-status', { token });
+    current = r;
+    const p = r.party;
+    $('pName').textContent = p.name;
+    $('pCode').textContent = p.code;
+    const url = location.origin + '/?p=' + p.code;
+    $('joinUrl').textContent = url;
+    if (window.QRCode) QRCode.toCanvas($('qr'), url, { width: 240, margin: 2, color: { dark: '#2c201c', light: '#fffaf3' } }, () => {});
+
+    if (forceEnd || !editingEnd) $('endsAt').value = p.endsAt ? toLocalInput(p.endsAt) : '';
+    if (forceEnd) editingEnd = false;
+    $('endState').innerHTML = p.released ? '<span class="pill closed">Gallery released</span>'
+      : p.closed ? '<span class="pill closed">Roll ended</span>'
+      : p.endsAt ? '<span class="pill">Open until ' + new Date(p.endsAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + '</span>'
+      : '<span class="pill">No end time set: open until you send the gallery</span>';
+    lookKey = LOOKS[p.filmLook] ? p.filmLook : 'classic';
+    markLook();
+
+    const body = $('gBody');
+    body.textContent = '';
+    r.guests.forEach((g) => {
+      const tr = document.createElement('tr');
+      [g.name, g.email, g.shots_used + ' / ' + p.maxShots, new Date(g.created_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })].forEach((t, i) => {
+        const td = document.createElement('td');
+        td.textContent = t + (i === 1 && !g.verified ? ' (not verified)' : '');
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+    $('gEmpty').classList.toggle('hidden', r.guests.length > 0);
+    $('gCount').textContent = '(' + r.guests.length + ')';
+    $('photoCount').textContent = r.photoCount;
+
+    $('release').textContent = p.released ? 'Re-send the emails' : 'Send the gallery';
+    const g = $('openGallery');
+    g.classList.toggle('hidden', !p.released);
+    g.href = '/gallery?p=' + encodeURIComponent(p.code);
+  }
+
+  $('copyLink').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('joinUrl').textContent); $('copyLink').textContent = 'Copied'; setTimeout(() => { $('copyLink').textContent = 'Copy link'; }, 1500); } catch (e) {}
+  });
+  if (navigator.share) {
+    $('shareLink').classList.remove('hidden');
+    $('shareLink').addEventListener('click', () => {
+      const name = current ? current.party.name : 'the party';
+      navigator.share({ title: name, text: 'Join ' + name + ' on Embers. Take 10 shots on a disposable camera.', url: $('joinUrl').textContent }).catch(() => {});
+    });
+  }
+
+  $('dlQr').addEventListener('click', () => {
+    const a = document.createElement('a');
+    a.href = $('qr').toDataURL('image/png');
+    a.download = 'embers-qr.png';
+    a.click();
+  });
+
+  $('release').addEventListener('click', async () => {
+    if (!current) return;
+    const n = current.guests.filter((g) => g.verified).length;
+    const again = current.party.released;
+    const ok2 = confirm(again
+      ? 'Re-send the gallery email to ' + n + ' guests?'
+      : 'This closes the camera for everyone and emails ' + n + ' guests their photos link. Ready?');
+    if (!ok2) return;
+    $('release').disabled = true;
+    $('relMsg').className = 'msg'; $('relMsg').textContent = 'Sending...';
+    try {
+      const r = await api('/api/host-release', { method: 'POST', token });
+      ok($('relMsg'), 'Sent to ' + r.emailed + ' guests.' + (r.failed.length ? ' Could not reach: ' + r.failed.join(', ') : ''));
+      await refresh();
+    } catch (x) { err($('relMsg'), x); }
+    $('release').disabled = false;
+  });
+
+  if (token) enter();
+})();
+</script>
+</body>
+</html>

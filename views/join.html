@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f8f1e8">
+<title>{{OG_TITLE}}</title>
+<meta name="description" content="{{OG_DESC}}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Embers">
+<meta property="og:title" content="{{OG_TITLE}}">
+<meta property="og:description" content="{{OG_DESC}}">
+<meta property="og:url" content="{{OG_URL}}">
+<meta property="og:image" content="{{OG_IMAGE}}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{OG_TITLE}}">
+<meta name="twitter:description" content="{{OG_DESC}}">
+<meta name="twitter:image" content="{{OG_IMAGE}}">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div id="inapp" class="banner hidden"></div>
+
+  <div class="brand"><span class="dot"></span>Embers</div>
+  <h1>{{HEADING}}</h1>
+  <p class="muted" id="sub">One disposable camera. 10 shots. The photos stay hidden until the host develops the film.</p>
+
+  <!-- Step 1: join -->
+  <form id="joinForm" class="card" autocomplete="on">
+    <div id="codeRow" class="hidden">
+      <label for="code">Party code</label>
+      <input id="code" type="text" autocapitalize="characters" autocomplete="off" maxlength="6" placeholder="ABC123">
+    </div>
+
+    <label for="name">Your name</label>
+    <input id="name" type="text" autocomplete="given-name" maxlength="40" placeholder="Name shown on your photos" required>
+
+    <label for="email">Your email</label>
+    <input id="email" type="email" autocomplete="email" placeholder="Same email you'll use for the gallery" required>
+
+    <label class="check">
+      <input id="consent" type="checkbox" required>
+      <span>I understand the photos I take are shared with everyone at this party, with my name shown on them in the gallery.</span>
+    </label>
+
+    <button id="joinBtn" type="submit">Get my camera</button>
+    <div id="joinMsg" class="msg"></div>
+  </form>
+
+  <!-- Step 2: email code -->
+  <form id="verifyForm" class="card hidden" autocomplete="off">
+    <h2>Check your email</h2>
+    <p class="muted small">We sent a 6 digit code to <span id="sentTo"></span>. It keeps each guest to one roll of film.</p>
+    <label for="vcode">Code</label>
+    <input id="vcode" type="tel" inputmode="numeric" maxlength="6" placeholder="123456" autocomplete="one-time-code">
+    <button id="verifyBtn" type="submit">Start shooting</button>
+    <button id="backBtn" type="button" class="ghost">Use a different email</button>
+    <div id="verifyMsg" class="msg"></div>
+  </form>
+
+  <p class="muted small center">Open this page in Safari or Chrome. When asked, tap Allow for the camera.</p>
+</div>
+
+<script src="/common.js"></script>
+<script>
+(function () {
+  showInAppBanner($('inapp'));
+
+  const params = new URLSearchParams(location.search);
+  let partyCode = (params.get('p') || localStorage.getItem('filmcam_party') || '').toUpperCase();
+  if (!partyCode) $('codeRow').classList.remove('hidden');
+  $('code').value = partyCode;
+
+  // Already joined on this phone? Skip straight to the camera.
+  const saved = localStorage.getItem('filmcam_token');
+  if (saved) {
+    api('/api/me', { token: saved })
+      .then(() => { location.replace('/camera'); })
+      .catch(() => { localStorage.removeItem('filmcam_token'); });
+  }
+
+  const prefill = localStorage.getItem('filmcam_profile');
+  if (prefill) {
+    try { const p = JSON.parse(prefill); $('name').value = p.name || ''; $('email').value = p.email || ''; } catch (e) {}
+  }
+
+  let guestId = null;
+
+  $('joinForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const code = ($('code').value || partyCode).trim().toUpperCase();
+    if (!code) { $('joinMsg').className = 'msg error'; $('joinMsg').textContent = 'Enter the party code.'; return; }
+    $('joinBtn').disabled = true;
+    $('joinMsg').className = 'msg'; $('joinMsg').textContent = 'One moment...';
+    try {
+      const body = { code, name: $('name').value, email: $('email').value };
+      const r = await api('/api/join', { method: 'POST', body });
+      partyCode = code;
+      localStorage.setItem('filmcam_party', code);
+      localStorage.setItem('filmcam_profile', JSON.stringify({ name: body.name, email: body.email }));
+      if (!r.needsVerify) {
+        localStorage.setItem('filmcam_token', r.token);
+        location.replace('/camera');
+        return;
+      }
+      guestId = r.guestId;
+      $('sentTo').textContent = body.email;
+      $('joinForm').classList.add('hidden');
+      $('verifyForm').classList.remove('hidden');
+      $('vcode').focus();
+    } catch (err) {
+      $('joinMsg').className = 'msg error'; $('joinMsg').textContent = err.message;
+    } finally {
+      $('joinBtn').disabled = false;
+    }
+  });
+
+  $('verifyForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    $('verifyBtn').disabled = true;
+    $('verifyMsg').className = 'msg'; $('verifyMsg').textContent = 'Checking...';
+    try {
+      const r = await api('/api/verify', { method: 'POST', body: { guestId, code: $('vcode').value } });
+      localStorage.setItem('filmcam_token', r.token);
+      location.replace('/camera');
+    } catch (err) {
+      $('verifyMsg').className = 'msg error'; $('verifyMsg').textContent = err.message;
+    } finally {
+      $('verifyBtn').disabled = false;
+    }
+  });
+
+  $('backBtn').addEventListener('click', () => {
+    $('verifyForm').classList.add('hidden');
+    $('joinForm').classList.remove('hidden');
+    $('joinMsg').textContent = '';
+  });
+})();
+</script>
+</body>
+</html>

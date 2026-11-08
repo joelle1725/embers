@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f8f1e8">
+<meta name="robots" content="noindex">
+<title>Embers Gallery</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<style>
+  .grid { width: 100%; max-width: 920px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 16px; }
+  @media (min-width: 640px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+  .shot { position: relative; aspect-ratio: 3 / 4; background: #e9dccd; border-radius: 12px; overflow: hidden; cursor: pointer; box-shadow: var(--shadow); }
+  .shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  /* The name is an overlay on the page only. It is NOT part of the image file. */
+  .tag { position: absolute; left: 10px; bottom: 8px; right: 10px; font-family: var(--mono); font-size: 12px; color: #fff7ef; text-shadow: 0 1px 4px #000a, 0 0 2px #000a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+  body.notags .tag { display: none; }
+
+  .tools { width: 100%; max-width: 920px; margin-top: 8px; }
+  .search { display: flex; gap: 8px; align-items: center; }
+  .search input { flex: 1; border-radius: 999px; padding-left: 18px; }
+  .search button { width: auto; margin: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .chip { width: auto; margin: 0; padding: 7px 14px; font-size: 13px; font-weight: 500; }
+  .bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px; }
+  .toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); margin: 0; }
+  .toggle input { width: 18px; height: 18px; accent-color: var(--accent); }
+
+  .lb { position: fixed; inset: 0; background: rgba(38, 28, 26, 0.94); z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; color: #f8ece0; }
+  .lb .frame { position: relative; max-width: 100%; max-height: calc(100dvh - 160px); }
+  .lb img { max-width: 100%; max-height: calc(100dvh - 160px); display: block; border-radius: 10px; }
+  .lb .row { display: flex; gap: 10px; width: 100%; max-width: 420px; margin-top: 14px; }
+  .lb .row button { margin-top: 0; }
+  .lb .ghost { color: #f8ece0; border-color: #6b564d; }
+</style>
+</head>
+<body>
+<div class="wrap center">
+  <div class="brand"><span class="dot"></span>Embers</div>
+  <h1 id="title">Gallery</h1>
+  <p class="muted" id="sub"></p>
+
+  <form id="signin" class="card hidden" style="text-align:left;">
+    <div id="codeRow">
+      <label for="gcode">Party code</label>
+      <input id="gcode" type="text" autocapitalize="characters" autocomplete="off" maxlength="6" placeholder="ABC123">
+    </div>
+    <label for="gemail">The email you joined with</label>
+    <input id="gemail" type="email" autocomplete="email" placeholder="you@example.com" required>
+    <button id="gbtn" type="submit">See the photos</button>
+    <div id="gmsg" class="msg"></div>
+  </form>
+</div>
+
+<div class="tools hidden" id="tools">
+  <form class="search" id="searchForm" role="search">
+    <input id="q" type="search" placeholder="Search by name" aria-label="Search photos by name" autocomplete="off">
+    <button class="ghost small" id="clearQ" type="button">Clear</button>
+  </form>
+  <div class="chips" id="chips"></div>
+  <div class="bar">
+    <span class="muted small" id="count"></span>
+    <label class="toggle"><input type="checkbox" id="names" checked> Show names</label>
+  </div>
+</div>
+<div class="grid" id="grid"></div>
+
+<div id="lb" class="lb hidden">
+  <div class="frame">
+    <img id="lbImg" alt="">
+    <div class="tag" id="lbTag"></div>
+  </div>
+  <div class="row">
+    <button id="prev" class="ghost" aria-label="Previous">&lsaquo;</button>
+    <button id="save">Save photo</button>
+    <button id="next" class="ghost" aria-label="Next">&rsaquo;</button>
+  </div>
+  <button id="close" class="ghost small" style="margin-top:12px;">Close</button>
+  <p class="small" id="saveNote" style="margin:10px 0 0;color:#c1ab9e;">Saved photos do not have the name on them.</p>
+</div>
+
+<script src="/common.js"></script>
+<script>
+(function () {
+  const params = new URLSearchParams(location.search);
+  const urlCode = (params.get('p') || '').toUpperCase();
+  const key = params.get('k') || '';
+  const token = localStorage.getItem('filmcam_token') || localStorage.getItem('filmcam_host_token') || '';
+  let profile = {};
+  try { profile = JSON.parse(localStorage.getItem('filmcam_profile') || '{}'); } catch (e) {}
+
+  let all = [], view = [], idx = 0, viewer = '';
+
+  function say(title, sub) { $('title').textContent = title; $('sub').textContent = sub; }
+
+  function showForm(message) {
+    $('signin').classList.remove('hidden');
+    $('gcode').value = urlCode || localStorage.getItem('filmcam_party') || '';
+    $('codeRow').classList.toggle('hidden', Boolean(urlCode));
+    $('gemail').value = profile.email || '';
+    say('Embers gallery', 'Enter the party code and the email you joined with.');
+    if (message) { $('gmsg').className = 'msg error'; $('gmsg').textContent = message; }
+  }
+
+  function accept(r) {
+    $('signin').classList.add('hidden');
+    $('title').textContent = r.partyName;
+    viewer = r.viewer || profile.name || '';
+    if (!r.released) { $('sub').textContent = 'Your film is still developing. The host will email everyone when it is ready.'; return; }
+    all = r.photos;
+    if (!all.length) { $('sub').textContent = 'No photos were taken at this party.'; return; }
+    $('sub').textContent = 'Everyone\'s photos, in the order they were taken.';
+    $('tools').classList.remove('hidden');
+    buildChips();
+    filter();
+  }
+
+  // Try the emailed link or an existing session first. Otherwise show the sign-in form.
+  async function load() {
+    if (urlCode && (key || token)) {
+      try {
+        const r = await api('/api/gallery?p=' + encodeURIComponent(urlCode) + (key ? '&k=' + encodeURIComponent(key) : ''), { token });
+        return accept(r);
+      } catch (err) { /* fall through to the form */ }
+    }
+    showForm();
+  }
+
+  $('signin').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const code = ($('gcode').value || urlCode).trim().toUpperCase();
+    $('gbtn').disabled = true;
+    $('gmsg').className = 'msg'; $('gmsg').textContent = 'Checking...';
+    try {
+      const r = await api('/api/gallery', { method: 'POST', body: { code, email: $('gemail').value } });
+      accept(r);
+    } catch (err) {
+      $('gmsg').className = 'msg error'; $('gmsg').textContent = err.message;
+    } finally { $('gbtn').disabled = false; }
+  });
+
+  // ---- Search by name ----
+  function buildChips() {
+    const c = $('chips');
+    c.textContent = '';
+    const mine = viewer || profile.name || '';
+    if (mine) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'ghost chip'; b.textContent = 'My photos';
+      b.addEventListener('click', () => { $('q').value = mine; filter(); });
+      c.appendChild(b);
+    }
+  }
+
+  function filter() {
+    const q = $('q').value.trim().toLowerCase();
+    view = q ? all.filter((p) => p.name.toLowerCase().includes(q)) : all.slice();
+    $('count').textContent = q
+      ? view.length + ' of ' + all.length + ' photos for "' + $('q').value.trim() + '"'
+      : all.length + ' photos';
+    render();
+  }
+
+  function render() {
+    const grid = $('grid');
+    grid.textContent = '';
+    if (!view.length) {
+      const p = document.createElement('p');
+      p.className = 'muted'; p.style.gridColumn = '1 / -1'; p.style.textAlign = 'center';
+      p.textContent = 'No photos found for that name. Try just the first name.';
+      grid.appendChild(p);
+      return;
+    }
+    view.forEach((p, i) => {
+      const d = document.createElement('div');
+      d.className = 'shot';
+      const img = document.createElement('img');
+      img.src = p.url; img.loading = 'lazy'; img.alt = 'Photo by ' + p.name;
+      const tag = document.createElement('div');
+      tag.className = 'tag'; tag.textContent = p.name;
+      d.append(img, tag);
+      d.addEventListener('click', () => open(i));
+      grid.appendChild(d);
+    });
+  }
+
+  function open(i) {
+    idx = (i + view.length) % view.length;
+    $('lbImg').src = view[idx].url;
+    $('lbTag').textContent = view[idx].name;
+    $('lbTag').style.display = $('names').checked ? '' : 'none';
+    $('lb').classList.remove('hidden');
+  }
+
+  async function save() {
+    const p = view[idx];
+    $('save').disabled = true;
+    try {
+      const blob = await (await fetch(p.url)).blob();
+      const file = new File([blob], 'embers-' + (all.indexOf(p) + 1) + '.jpg', { type: 'image/jpeg' });
+      // On phones this opens the share sheet, which has "Save Image" / "Save to Photos".
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file] });
+      } else {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = file.name;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      }
+    } catch (err) {
+      if (err && err.name !== 'AbortError') window.open(p.url, '_blank'); // fallback: long-press to save
+    } finally {
+      $('save').disabled = false;
+    }
+  }
+
+  $('searchForm').addEventListener('submit', (e) => { e.preventDefault(); filter(); });
+  $('q').addEventListener('input', filter);
+  $('clearQ').addEventListener('click', () => { $('q').value = ''; filter(); });
+  $('names').addEventListener('change', () => { document.body.classList.toggle('notags', !$('names').checked); $('lbTag').style.display = $('names').checked ? '' : 'none'; });
+  $('close').addEventListener('click', () => $('lb').classList.add('hidden'));
+  $('prev').addEventListener('click', () => open(idx - 1));
+  $('next').addEventListener('click', () => open(idx + 1));
+  $('save').addEventListener('click', save);
+  document.addEventListener('keydown', (e) => {
+    if ($('lb').classList.contains('hidden')) return;
+    if (e.key === 'Escape') $('lb').classList.add('hidden');
+    if (e.key === 'ArrowLeft') open(idx - 1);
+    if (e.key === 'ArrowRight') open(idx + 1);
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#261c1a">
+<title>Embers Camera</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<style>
+  /* The camera screen stays dark so the viewfinder is easy to read, but warm instead of black. */
+  :root { --bg: #261c1a; --card: #33261f; --line: #4d3b34; --ink: #f8ece0; --muted: #c1ab9e; --accent: #e07a62; --accent-dark: #c9644d; --peach: #4a2e26; --rose: #3d2622; }
+  body { background-image: radial-gradient(500px 300px at 50% 0%, #45292300 0%, #3a241f 100%); background-color: #261c1a; color: var(--ink); padding: 12px 0 18px; justify-content: space-between; overflow: hidden; }
+  .top { width: 100%; max-width: 520px; display: flex; justify-content: space-between; align-items: center; padding: 0 16px; }
+  .party { font-size: 14px; color: var(--muted); max-width: 55%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .counter { font-family: var(--mono); background: #1a1210; border: 1px solid var(--line); border-radius: 10px; padding: 6px 12px; color: #f2b9a4; font-size: 22px; letter-spacing: 3px; }
+  .closes { font-size: 12px; color: var(--muted); text-align: center; min-height: 16px; }
+  .counter small { font-size: 11px; color: var(--muted); letter-spacing: 1px; margin-left: 6px; }
+
+  .viewfinder {
+    position: relative; overflow: hidden; background: #000; border-radius: 10px;
+    aspect-ratio: 3 / 4; width: min(100vw - 24px, calc((100dvh - 210px) * 0.75));
+    box-shadow: 0 0 0 2px #4d3b34;
+  }
+  video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  video.mirror { transform: scaleX(-1); }
+
+  /* Film look for the live preview: warm tint, vignette, moving grain */
+  .tint { position: absolute; inset: 0; background: var(--tint, rgba(255, 150, 50, 0.10)); mix-blend-mode: soft-light; pointer-events: none; }
+  .vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,var(--vig, 0.5)) 100%); pointer-events: none; }
+  .grain {
+    position: absolute; inset: -20%; pointer-events: none; opacity: var(--grain, 0.35); mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    animation: jitter 0.4s steps(4) infinite;
+  }
+  @keyframes jitter { 0% { transform: translate(0,0); } 25% { transform: translate(-3%,2%); } 50% { transform: translate(2%,-3%); } 75% { transform: translate(-2%,-1%); } 100% { transform: translate(1%,3%); } }
+  .stamp { position: absolute; right: 14px; bottom: 12px; font-family: var(--mono); color: #ff9a3c; font-size: 15px; text-shadow: 0 0 6px rgba(255,120,0,0.7); pointer-events: none; }
+  .flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+  .flash.go { animation: flash 0.25s ease-out; }
+  @keyframes flash { 0% { opacity: 0.85; } 100% { opacity: 0; } }
+
+  .controls { width: 100%; max-width: 520px; display: flex; align-items: center; justify-content: space-around; padding: 0 16px; }
+  .shutter { width: 78px; height: 78px; margin: 0; padding: 0; border-radius: 50%; background: #f8ece0; border: 6px solid #261c1a; box-shadow: 0 0 0 3px #f8ece0; }
+  .shutter:hover { background: #f8ece0; }
+  .shutter:active { transform: scale(0.94); }
+  .shutter:disabled { opacity: 0.4; }
+  .side { width: 56px; height: 56px; margin: 0; padding: 0; border-radius: 50%; background: transparent; border: 1px solid var(--line); color: var(--ink); font-size: 22px; }
+  .side.on { background: #f2b9a4; color: #261c1a; border-color: #f2b9a4; }
+  .looksbar { width: 100%; max-width: 520px; display: flex; gap: 8px; justify-content: center; padding: 0 12px; flex-wrap: wrap; }
+  .lk { width: auto; margin: 0; padding: 7px 13px; font-size: 13px; font-weight: 500; background: transparent; color: var(--muted); border: 1px solid var(--line); }
+  .lk:hover { background: transparent; }
+  .lk.on { background: #f8ece0; color: #261c1a; border-color: #f8ece0; }
+  .fullflash { position: fixed; inset: 0; background: #fff; z-index: 6; opacity: 0; pointer-events: none; transition: opacity 0.12s; }
+  .fullflash.on { opacity: 1; }
+
+  .toast { position: fixed; left: 50%; top: 64px; transform: translateX(-50%); background: #1a1210e6; color: var(--ink); padding: 8px 14px; border-radius: 20px; font-size: 14px; opacity: 0; transition: opacity 0.2s; pointer-events: none; max-width: 90%; text-align: center; z-index: 5; }
+  .toast.show { opacity: 1; }
+  .toast.err { background: #5a1d16e6; }
+
+  .overlay { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28px; text-align: center; z-index: 10; }
+  .overlay .btn, .overlay button { max-width: 320px; }
+</style>
+</head>
+<body>
+<div id="inapp" class="banner hidden" style="margin:0 16px;"></div>
+
+<div class="top">
+  <div class="party" id="party">Embers</div>
+  <div class="counter"><span id="left">--</span><small>LEFT</small></div>
+</div>
+
+<div class="viewfinder" id="vf">
+  <video id="video" playsinline muted autoplay></video>
+  <div class="tint"></div>
+  <div class="grain"></div>
+  <div class="vignette"></div>
+  <div class="stamp" id="stamp"></div>
+  <div class="flash" id="flash"></div>
+</div>
+
+<div class="closes" id="closes"></div>
+<div class="looksbar" id="looksbar"></div>
+
+<div class="controls">
+  <button id="flash" class="side" aria-label="Flash" title="Flash">&#9889;</button>
+  <button id="shutter" class="shutter" aria-label="Take photo" disabled></button>
+  <button id="flip" class="side" aria-label="Flip camera">&#8635;</button>
+</div>
+
+<div id="fullflash" class="fullflash"></div>
+<div id="toast" class="toast"></div>
+
+<div id="msgOverlay" class="overlay hidden">
+  <h1 id="ovTitle"></h1>
+  <p id="ovBody" class="muted"></p>
+  <a id="ovLink" class="btn hidden" href="#">See the photos</a>
+  <button id="ovRetry" class="ghost hidden">Try the camera again</button>
+</div>
+
+<canvas id="work" class="hidden"></canvas>
+
+<script src="/common.js"></script>
+<script src="/looks.js"></script>
+<script>
+(function () {
+  showInAppBanner($('inapp'));
+
+  const token = localStorage.getItem('filmcam_token');
+  if (!token) { location.replace('/?p=' + (localStorage.getItem('filmcam_party') || '')); return; }
+
+  const video = $('video'), shutter = $('shutter'), work = $('work');
+  let facing = 'environment', stream = null, left = 0, busy = false, look = 'classic', closed = false, flashOn = false, hostLook = 'classic';
+
+  $('stamp').textContent = stampText(new Date());
+  buildLooksBar();
+  try { flashOn = localStorage.getItem('filmcam_flash') === '1'; } catch (e) {}
+  $('flash').classList.toggle('on', flashOn);
+
+  // Live preview follows the film look the host picked.
+  function buildLooksBar() {
+    const SHORT = { classic: 'Classic', golden: 'Golden', cool35: 'Cool 35', mono: 'B&W' };
+    const bar = $('looksbar');
+    if (bar.childElementCount) return;
+    Object.keys(LOOKS).forEach((k) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'lk'; b.dataset.k = k; b.textContent = SHORT[k] || LOOKS[k].name;
+      b.addEventListener('click', () => { try { localStorage.setItem('filmcam_look', k); } catch (e) {} setLook(k); });
+      bar.appendChild(b);
+    });
+  }
+  function setLook(key) {
+    look = LOOKS[key] ? key : 'classic';
+    const L = LOOKS[look];
+    const vf = $('vf');
+    video.style.filter = L.css.filter;
+    vf.style.setProperty('--tint', L.css.tint);
+    vf.style.setProperty('--grain', L.css.grain);
+    vf.style.setProperty('--vig', L.vig);
+    $('stamp').style.display = L.stamp ? '' : 'none';
+    if (L.stamp) $('stamp').style.color = L.stamp;
+    document.querySelectorAll('.lk').forEach((b) => b.classList.toggle('on', b.dataset.k === look));
+  }
+
+  function toast(text, isErr) {
+    const t = $('toast');
+    t.textContent = text;
+    t.className = 'toast show' + (isErr ? ' err' : '');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => { t.className = 'toast'; }, isErr ? 3500 : 1400);
+  }
+
+  function overlay(title, body, opts) {
+    const o = opts || {};
+    $('ovTitle').textContent = title;
+    $('ovBody').textContent = body;
+    $('ovLink').classList.toggle('hidden', !o.link);
+    if (o.link) $('ovLink').href = o.link;
+    $('ovRetry').classList.toggle('hidden', !o.retry);
+    $('msgOverlay').classList.remove('hidden');
+  }
+
+  function setLeft(n) {
+    left = n;
+    $('left').textContent = String(n).padStart(2, '0');
+    shutter.disabled = n <= 0 || busy || !stream;
+    if (n <= 0) {
+      stopCamera();
+      overlay('Roll finished', 'That is all of your shots. Your photos get developed after the party, and the host will email you a link.');
+    }
+  }
+
+  function stopCamera() {
+    if (stream) { stream.getTracks().forEach((t) => t.stop()); stream = null; }
+  }
+
+  async function startCamera() {
+    stopCamera();
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      overlay('Camera not available', 'This browser cannot open the camera. Open the link in Safari or Chrome.', { retry: true });
+      return;
+    }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: facing }, width: { ideal: 1920 }, height: { ideal: 1440 } },
+        audio: false,
+      });
+      video.srcObject = stream;
+      video.classList.toggle('mirror', facing === 'user');
+      await video.play().catch(() => {});
+      $('msgOverlay').classList.add('hidden');
+      shutter.disabled = left <= 0 || busy;
+    } catch (err) {
+      const denied = err && (err.name === 'NotAllowedError' || err.name === 'SecurityError');
+      overlay(
+        denied ? 'Camera is blocked' : 'Could not start the camera',
+        denied
+          ? 'Allow camera access for this site: tap the aA or lock icon in the address bar, open Website Settings, set Camera to Allow, then reload.'
+          : 'Make sure no other app is using the camera, then try again.',
+        { retry: true }
+      );
+    }
+  }
+
+  // ---- Flash ----
+  // Android rear cameras can light the real torch. iPhones cannot, so the rear camera there gets a
+  // simulated direct-flash look. The front camera uses a bright white screen.
+  function torchSupported() {
+    const t = stream && stream.getVideoTracks()[0];
+    return Boolean(facing === 'environment' && t && t.getCapabilities && t.getCapabilities().torch);
+  }
+  async function torch(on) {
+    try { await stream.getVideoTracks()[0].applyConstraints({ advanced: [{ torch: on }] }); } catch (e) { /* ignore */ }
+  }
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  async function flashBefore() {
+    if (!flashOn) return { simulated: false };
+    if (facing === 'user') { $('fullflash').classList.add('on'); await wait(350); return { simulated: false, screen: true }; }
+    if (torchSupported()) { await torch(true); await wait(450); return { simulated: false, torch: true }; }
+    return { simulated: true };
+  }
+  async function flashAfter(f) {
+    if (f.screen) $('fullflash').classList.remove('on');
+    if (f.torch) await torch(false);
+  }
+
+  // Direct-flash feel: bright centre, harsher contrast, dark falloff around the edges.
+  function flashBoost(ctx, w, h) {
+    const img = ctx.getImageData(0, 0, w, h), d = img.data;
+    const cx = w / 2, cy = h * 0.55, maxd = Math.hypot(cx, cy);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4;
+        const f = 1.28 - 0.55 * Math.pow(Math.hypot(x - cx, y - cy) / maxd, 1.4);
+        for (let c = 0; c < 3; c++) {
+          let v = (d[i + c] * f - 128) * 1.14 + 128;
+          d[i + c] = v < 0 ? 0 : v > 255 ? 255 : v;
+        }
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+
+  function capture(simulatedFlash) {
+    const vw = video.videoWidth, vh = video.videoHeight;
+    // crop the center to 3:4 so the photo matches what you see in the viewfinder
+    const target = 3 / 4;
+    let sw = vw, sh = vh;
+    if (vw / vh > target) sw = vh * target; else sh = vw / target;
+    const sx = (vw - sw) / 2, sy = (vh - sh) / 2;
+    const outW = Math.min(960, Math.round(sw));
+    const outH = Math.round(outW / target);
+    work.width = outW; work.height = outH;
+    const ctx = work.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, outW, outH);
+    if (simulatedFlash) flashBoost(ctx, outW, outH);
+    applyLook(ctx, outW, outH, look, new Date());
+    return work.toDataURL('image/jpeg', 0.82);
+  }
+
+  async function shoot() {
+    if (busy || left <= 0 || !stream || !video.videoWidth) return;
+    busy = true; shutter.disabled = true;
+    $('flash').classList.remove('go'); void $('flash').offsetWidth; $('flash').classList.add('go');
+    if (navigator.vibrate) navigator.vibrate(25);
+    let f = { simulated: false };
+    try {
+      f = await flashBefore();
+      const image = capture(f.simulated);
+      await flashAfter(f);
+      const r = await api('/api/shoot', { method: 'POST', token, body: { image } });
+      busy = false;
+      toast('Shot saved');
+      setLeft(r.shotsLeft);
+    } catch (err) {
+      await flashAfter(f);
+      busy = false;
+      if (err.status === 401) { localStorage.removeItem('filmcam_token'); location.replace('/'); return; }
+      toast(err.message, true);
+      if (err.status === 403) { toast(err.message, true); await refresh(); } else shutter.disabled = left <= 0;
+    }
+  }
+
+  async function refresh() {
+    try {
+      const me = await api('/api/me', { token });
+      $('party').textContent = me.partyName + ' / ' + me.name;
+      hostLook = me.filmLook;
+      let mine = ''; try { mine = localStorage.getItem('filmcam_look') || ''; } catch (e) {}
+      setLook(LOOKS[mine] ? mine : hostLook);
+      closed = me.closed;
+      if (me.released) {
+        stopCamera();
+        overlay('Your film is developed', 'The host has released the photos.', { link: me.galleryUrl });
+        return;
+      }
+      if (me.closed) {
+        stopCamera();
+        overlay('The roll has ended', 'The host closed the camera. The photos get developed soon, and you will get an email when the gallery is ready.');
+        return;
+      }
+      if (me.endsAt) {
+        const t = new Date(me.endsAt);
+        $('closes').textContent = 'Camera closes at ' + t.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        const ms = t.getTime() - Date.now();
+        clearTimeout(refresh._t);
+        if (ms > 0 && ms < 2147483000) refresh._t = setTimeout(refresh, ms + 500);
+      }
+      setLeft(me.shotsLeft);
+    } catch (err) {
+      if (err.status === 401) { localStorage.removeItem('filmcam_token'); location.replace('/?p=' + (localStorage.getItem('filmcam_party') || '')); }
+      else toast(err.message, true);
+    }
+  }
+
+  shutter.addEventListener('click', shoot);
+  $('flip').addEventListener('click', () => { facing = facing === 'environment' ? 'user' : 'environment'; startCamera(); });
+  $('flash').addEventListener('click', () => {
+    flashOn = !flashOn;
+    try { localStorage.setItem('filmcam_flash', flashOn ? '1' : '0'); } catch (e) {}
+    $('flash').classList.toggle('on', flashOn);
+    if (flashOn) toast(facing === 'user' ? 'Flash on: screen lights up' : torchSupported() ? 'Flash on' : 'Flash on (simulated on this phone)');
+  });
+  $('ovRetry').addEventListener('click', startCamera);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && left > 0 && !closed && (!stream || stream.getVideoTracks().every((t) => t.readyState === 'ended'))) startCamera();
+  });
+
+  refresh().then(() => { if (left > 0 && !closed) startCamera(); });
+})();
+</script>
+</body>
+</html>
