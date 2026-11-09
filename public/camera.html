@@ -8,25 +8,27 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 <style>
-  body { padding: 12px 0 18px; justify-content: space-between; overflow: hidden; }
-  .top { width: 100%; max-width: 520px; display: flex; justify-content: space-between; align-items: center; padding: 0 16px; }
-  .party { font-size: 14px; color: var(--muted); max-width: 55%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .counter { font-family: var(--mono); background: #000; border: 1px solid var(--line); border-radius: 10px; padding: 6px 12px; color: var(--accent); text-shadow: 0 0 10px rgba(255,20,147,0.5); font-size: 22px; letter-spacing: 3px; }
-  .closes { font-size: 12px; color: var(--muted); text-align: center; min-height: 16px; }
-  .counter small { font-size: 11px; color: var(--muted); letter-spacing: 1px; margin-left: 6px; }
+  :root { --mono: "DM Mono", ui-monospace, "SF Mono", Menlo, monospace; }
+  html, body { height: 100%; }
+  body { padding: max(10px, env(safe-area-inset-top)) 0 max(14px, env(safe-area-inset-bottom)); justify-content: space-between; overflow: hidden; background-image: radial-gradient(520px 300px at 50% -6%, rgba(255,20,147,0.13), rgba(255,20,147,0) 70%); }
+
+  .top { width: 100%; max-width: 520px; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 18px; gap: 12px; }
+  .party { font-family: var(--serif); font-weight: 600; font-size: 18px; color: #ececec; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.15; }
+  .who { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .closes { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; padding-bottom: 2px; }
 
   .viewfinder {
-    position: relative; overflow: hidden; background: #000; border-radius: 10px;
-    aspect-ratio: 3 / 4; width: min(100vw - 24px, calc((100dvh - 210px) * 0.75));
-    box-shadow: 0 0 0 2px #353535;
+    position: relative; overflow: hidden; background: #000; border-radius: 6px;
+    aspect-ratio: 3 / 4; width: min(100vw - 20px, calc((100dvh - 262px) * 0.75));
+    box-shadow: 0 0 0 1px #262626, 0 18px 40px rgba(0,0,0,0.6);
   }
   video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   video.mirror { transform: scaleX(-1); }
 
-  /* Film look for the live preview: warm tint, vignette, moving grain */
+  /* Film look for the live preview: tint, vignette, moving grain */
   .tint { position: absolute; inset: 0; background: var(--tint, rgba(255, 150, 50, 0.10)); mix-blend-mode: soft-light; pointer-events: none; }
   .vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,var(--vig, 0.5)) 100%); pointer-events: none; }
   .grain {
@@ -35,39 +37,68 @@
     animation: jitter 0.4s steps(4) infinite;
   }
   @keyframes jitter { 0% { transform: translate(0,0); } 25% { transform: translate(-3%,2%); } 50% { transform: translate(2%,-3%); } 75% { transform: translate(-2%,-1%); } 100% { transform: translate(1%,3%); } }
-  .stamp { position: absolute; right: 14px; bottom: 12px; font-family: var(--mono); color: #ff9a3c; font-size: 15px; text-shadow: 0 0 6px rgba(255,120,0,0.7); pointer-events: none; }
-  .flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
-  .flash.go { animation: flash 0.25s ease-out; }
+  /* Viewfinder corner marks */
+  .marks { position: absolute; inset: 14px; pointer-events: none; opacity: 0.7;
+    --m: rgba(255,255,255,0.75);
+    background:
+      linear-gradient(var(--m),var(--m)) 0 0 / 18px 1.5px no-repeat, linear-gradient(var(--m),var(--m)) 0 0 / 1.5px 18px no-repeat,
+      linear-gradient(var(--m),var(--m)) 100% 0 / 18px 1.5px no-repeat, linear-gradient(var(--m),var(--m)) 100% 0 / 1.5px 18px no-repeat,
+      linear-gradient(var(--m),var(--m)) 0 100% / 18px 1.5px no-repeat, linear-gradient(var(--m),var(--m)) 0 100% / 1.5px 18px no-repeat,
+      linear-gradient(var(--m),var(--m)) 100% 100% / 18px 1.5px no-repeat, linear-gradient(var(--m),var(--m)) 100% 100% / 1.5px 18px no-repeat; }
+  .stamp { position: absolute; right: 26px; bottom: 24px; font-family: var(--mono); font-weight: 500; color: #ff9a3c; font-size: 14px; text-shadow: 0 0 6px rgba(255,120,0,0.7); pointer-events: none; }
+  .shutterflash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+  .shutterflash.go { animation: flash 0.25s ease-out; }
   @keyframes flash { 0% { opacity: 0.85; } 100% { opacity: 0; } }
 
-  .controls { width: 100%; max-width: 520px; display: flex; align-items: center; justify-content: space-around; padding: 0 16px; }
-  .shutter { width: 78px; height: 78px; margin: 0; padding: 0; border-radius: 50%; background: #d5d5d5; border: 6px solid #0a0a0a; box-shadow: 0 0 0 3px #d5d5d5; }
-  .shutter:hover { background: #d5d5d5; }
-  .shutter:active { transform: scale(0.94); }
-  .shutter:disabled { opacity: 0.4; }
-  .side { width: 56px; height: 56px; margin: 0; padding: 0; border-radius: 50%; background: transparent; border: 1px solid var(--line); color: var(--ink); font-size: 22px; }
-  .side.on { background: var(--accent); color: #0a0a0a; border-color: var(--accent); box-shadow: 0 0 14px rgba(255,20,147,0.5); }
-  .looksbar { width: 100%; max-width: 520px; display: flex; gap: 8px; justify-content: center; padding: 0 12px; flex-wrap: wrap; }
-  .lk { width: auto; margin: 0; padding: 7px 13px; font-size: 13px; font-weight: 500; background: transparent; color: var(--muted); border: 1px solid var(--line); }
-  .lk:hover { background: transparent; }
-  .lk.on { background: var(--accent); color: #0a0a0a; border-color: var(--accent); }
+  /* The roll: one frame per shot. Lit frames are unexposed, dark ones are used. */
+  .roll { width: min(100vw - 20px, 520px); display: flex; align-items: center; gap: 12px; }
+  .strip { flex: 1; display: flex; gap: 4px; padding: 9px 6px; border-radius: 4px; background: #1a1a1a;
+    background-image: radial-gradient(circle, #0a0a0a 1.6px, transparent 2px), radial-gradient(circle, #0a0a0a 1.6px, transparent 2px);
+    background-size: 9px 6px, 9px 6px; background-position: 0 1px, 0 calc(100% - 1px); background-repeat: repeat-x, repeat-x; }
+  .frame { flex: 1; height: 20px; border-radius: 2px; background: var(--accent); box-shadow: 0 0 8px rgba(255,20,147,0.45); transition: background 0.25s, box-shadow 0.25s; }
+  .frame.used { background: #2b2b2b; box-shadow: none; }
+  .frame.pop { animation: pop 0.35s ease-out; }
+  @keyframes pop { 0% { background: #fff; box-shadow: 0 0 14px #fff; } 100% { background: #2b2b2b; box-shadow: none; } }
+  .count { font-family: var(--mono); font-size: 13px; color: var(--muted); min-width: 56px; text-align: right; white-space: nowrap; }
+  .count b { font-size: 22px; font-weight: 500; color: var(--ink); }
+
+  .looksbar { width: 100%; max-width: 520px; display: flex; gap: 22px; justify-content: center; padding: 0 12px; }
+  .lk { width: auto; margin: 0; padding: 6px 2px 7px; font-size: 14px; font-weight: 500; background: transparent; color: #7c7c7c; border: 0; border-bottom: 2px solid transparent; border-radius: 0; box-shadow: none; }
+  .lk:hover { background: transparent; color: var(--ink); }
+  .lk.on { color: #f2f2f2; border-bottom-color: var(--accent); }
+
+  .controls { width: 100%; max-width: 420px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; }
+  .shutter { width: 80px; height: 80px; margin: 0; padding: 0; border-radius: 50%; background: transparent; border: 2px solid #d5d5d5; box-shadow: none; position: relative; }
+  .shutter::after { content: ''; position: absolute; inset: 6px; border-radius: 50%; background: #e6e6e6; transition: transform 0.1s, background 0.1s; }
+  .shutter:hover { background: transparent; }
+  .shutter:active::after { transform: scale(0.88); background: var(--accent); }
+  .shutter:disabled { opacity: 0.35; }
+  .side { width: 52px; height: 52px; margin: 0; padding: 0; display: grid; place-items: center; border-radius: 50%; background: #151515; border: 1px solid #262626; color: var(--ink); box-shadow: none; }
+  .side:hover { background: #1c1c1c; }
+  .side svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .side.on { background: var(--accent); border-color: var(--accent); color: #0a0a0a; box-shadow: 0 0 16px rgba(255,20,147,0.5); }
+  .side.on svg { fill: currentColor; }
   .fullflash { position: fixed; inset: 0; background: #fff; z-index: 6; opacity: 0; pointer-events: none; transition: opacity 0.12s; }
   .fullflash.on { opacity: 1; }
 
-  .toast { position: fixed; left: 50%; top: 64px; transform: translateX(-50%); background: #000000e6; color: var(--ink); padding: 8px 14px; border-radius: 20px; font-size: 14px; opacity: 0; transition: opacity 0.2s; pointer-events: none; max-width: 90%; text-align: center; z-index: 5; }
+  .toast { position: fixed; left: 50%; top: 68px; transform: translateX(-50%); background: #000000e6; color: var(--ink); padding: 8px 14px; border-radius: 20px; font-size: 14px; opacity: 0; transition: opacity 0.2s; pointer-events: none; max-width: 90%; text-align: center; z-index: 5; }
   .toast.show { opacity: 1; }
   .toast.err { background: #5a1020e6; }
 
   .overlay { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28px; text-align: center; z-index: 10; }
   .overlay .btn, .overlay button { max-width: 320px; }
+  @media (prefers-reduced-motion: reduce) { .grain { animation: none; } .frame.pop { animation: none; } }
 </style>
 </head>
 <body>
 <div id="inapp" class="banner hidden" style="margin:0 16px;"></div>
 
 <div class="top">
-  <div class="party" id="party">Embers</div>
-  <div class="counter"><span id="left">--</span><small>LEFT</small></div>
+  <div style="min-width:0">
+    <div class="party" id="party">Embers</div>
+    <div class="who" id="who"></div>
+  </div>
+  <div class="closes" id="closes"></div>
 </div>
 
 <div class="viewfinder" id="vf">
@@ -75,17 +106,22 @@
   <div class="tint"></div>
   <div class="grain"></div>
   <div class="vignette"></div>
+  <div class="marks"></div>
   <div class="stamp" id="stamp"></div>
-  <div class="flash" id="flash"></div>
+  <div class="shutterflash" id="shutterFlash"></div>
 </div>
 
-<div class="closes" id="closes"></div>
+<div class="roll">
+  <div class="strip" id="strip" aria-hidden="true"></div>
+  <div class="count" aria-live="polite"><b id="left">--</b> left</div>
+</div>
+
 <div class="looksbar" id="looksbar"></div>
 
 <div class="controls">
-  <button id="flash" class="side" aria-label="Flash" title="Flash">&#9889;</button>
+  <button id="flashBtn" class="side" aria-label="Flash" title="Flash"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></button>
   <button id="shutter" class="shutter" aria-label="Take photo" disabled></button>
-  <button id="flip" class="side" aria-label="Flip camera">&#8635;</button>
+  <button id="flip" class="side" aria-label="Flip camera" title="Flip camera"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/></svg></button>
 </div>
 
 <div id="fullflash" class="fullflash"></div>
@@ -110,12 +146,12 @@
   if (!token) { location.replace('/?p=' + (localStorage.getItem('filmcam_party') || '')); return; }
 
   const video = $('video'), shutter = $('shutter'), work = $('work');
-  let facing = 'environment', stream = null, left = 0, busy = false, look = 'classic', closed = false, flashOn = false, hostLook = 'classic';
+  let maxShots = 10, facing = 'environment', stream = null, left = 0, busy = false, look = 'classic', closed = false, flashOn = false, hostLook = 'classic';
 
   $('stamp').textContent = stampText(new Date());
   buildLooksBar();
   try { flashOn = localStorage.getItem('filmcam_flash') === '1'; } catch (e) {}
-  $('flash').classList.toggle('on', flashOn);
+  $('flashBtn').classList.toggle('on', flashOn);
 
   // Live preview follows the film look the host picked.
   function buildLooksBar() {
@@ -160,9 +196,24 @@
     $('msgOverlay').classList.remove('hidden');
   }
 
-  function setLeft(n) {
+  function drawStrip(popLast) {
+    const strip = $('strip');
+    if (strip.childElementCount !== maxShots) {
+      strip.innerHTML = '';
+      for (let i = 0; i < maxShots; i++) { const f = document.createElement('div'); f.className = 'frame'; strip.appendChild(f); }
+    }
+    const used = maxShots - left;
+    Array.from(strip.children).forEach((f, i) => {
+      f.classList.toggle('used', i < used);
+      f.classList.remove('pop');
+      if (popLast && i === used - 1) { void f.offsetWidth; f.classList.add('pop'); }
+    });
+  }
+
+  function setLeft(n, popLast) {
     left = n;
-    $('left').textContent = String(n).padStart(2, '0');
+    $('left').textContent = String(n);
+    drawStrip(popLast);
     shutter.disabled = n <= 0 || busy || !stream;
     if (n <= 0) {
       stopCamera();
@@ -262,7 +313,7 @@
   async function shoot() {
     if (busy || left <= 0 || !stream || !video.videoWidth) return;
     busy = true; shutter.disabled = true;
-    $('flash').classList.remove('go'); void $('flash').offsetWidth; $('flash').classList.add('go');
+    $('shutterFlash').classList.remove('go'); void $('shutterFlash').offsetWidth; $('shutterFlash').classList.add('go');
     if (navigator.vibrate) navigator.vibrate(25);
     let f = { simulated: false };
     try {
@@ -272,7 +323,7 @@
       const r = await api('/api/shoot', { method: 'POST', token, body: { image } });
       busy = false;
       toast('Shot saved');
-      setLeft(r.shotsLeft);
+      setLeft(r.shotsLeft, true);
     } catch (err) {
       await flashAfter(f);
       busy = false;
@@ -285,7 +336,8 @@
   async function refresh() {
     try {
       const me = await api('/api/me', { token });
-      $('party').textContent = me.partyName + ' / ' + me.name;
+      $('party').textContent = me.partyName; $('who').textContent = me.name;
+      if (me.maxShots) maxShots = me.maxShots;
       hostLook = me.filmLook;
       let mine = ''; try { mine = localStorage.getItem('filmcam_look') || ''; } catch (e) {}
       setLook(LOOKS[mine] ? mine : hostLook);
@@ -302,7 +354,7 @@
       }
       if (me.endsAt) {
         const t = new Date(me.endsAt);
-        $('closes').textContent = 'Camera closes at ' + t.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        $('closes').textContent = 'Closes ' + t.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
         const ms = t.getTime() - Date.now();
         clearTimeout(refresh._t);
         if (ms > 0 && ms < 2147483000) refresh._t = setTimeout(refresh, ms + 500);
@@ -316,10 +368,10 @@
 
   shutter.addEventListener('click', shoot);
   $('flip').addEventListener('click', () => { facing = facing === 'environment' ? 'user' : 'environment'; startCamera(); });
-  $('flash').addEventListener('click', () => {
+  $('flashBtn').addEventListener('click', () => {
     flashOn = !flashOn;
     try { localStorage.setItem('filmcam_flash', flashOn ? '1' : '0'); } catch (e) {}
-    $('flash').classList.toggle('on', flashOn);
+    $('flashBtn').classList.toggle('on', flashOn);
     if (flashOn) toast(facing === 'user' ? 'Flash on: screen lights up' : torchSupported() ? 'Flash on' : 'Flash on (simulated on this phone)');
   });
   $('ovRetry').addEventListener('click', startCamera);
