@@ -2,7 +2,6 @@
   "cleanUrls": true,
   "rewrites": [{ "source": "/", "destination": "/api/index" }],
   "functions": {
-    "api/*.js": { "maxDuration": 30 },
-    "api/index.js": { "maxDuration": 10, "includeFiles": "views/**" }
+    "api/*.js": { "maxDuration": 30, "includeFiles": "views/**" }
   }
 }
