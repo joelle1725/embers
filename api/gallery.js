@@ -14,6 +14,7 @@ module.exports = handler(['GET', 'POST'], async (req, res) => {
   if (!party) throw fail(404, 'That party code was not found.');
 
   let viewer = null;
+  let isHost = false;
   if (isPost) {
     if (!validEmail(src.email || '')) throw fail(400, 'Enter the email you used to join.');
     const { data } = await db().from('guests').select('name').eq('party_id', party.id)
@@ -28,7 +29,7 @@ module.exports = handler(['GET', 'POST'], async (req, res) => {
       if (data) viewer = data.name;
     }
     if (viewer === null && token) {
-      if (verifyHostToken(token) === party.id) viewer = '';
+      if (verifyHostToken(token) === party.id) { viewer = ''; isHost = true; }
       else {
         const { data } = await db().from('guests').select('name').eq('party_id', party.id).eq('token', token).maybeSingle();
         if (data) viewer = data.name;
@@ -37,11 +38,11 @@ module.exports = handler(['GET', 'POST'], async (req, res) => {
     if (viewer === null) throw fail(403, 'Sign in with the party code and your email to see the photos.');
   }
 
-  if (!party.released) return send(res, 200, { partyName: party.name, released: false, photos: [], viewer });
+  if (!party.released) return send(res, 200, { partyName: party.name, released: false, photos: [], viewer, isHost });
 
   const { data: photos } = await db()
     .from('photos')
-    .select('path, taken_at, guests(name)')
+    .select('id, path, taken_at, guests(name)')
     .eq('party_id', party.id)
     .order('taken_at', { ascending: true });
 
@@ -58,7 +59,9 @@ module.exports = handler(['GET', 'POST'], async (req, res) => {
     partyName: party.name,
     released: true,
     viewer,
+    isHost,
     photos: list.map((p, i) => ({
+      id: p.id,
       url: signed[i] && signed[i].signedUrl,
       name: (p.guests && p.guests.name) || '',
       takenAt: p.taken_at,
