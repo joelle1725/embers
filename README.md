@@ -77,9 +77,10 @@ Gmail SMTP via nodemailer (join codes, gallery emails)
 
 - Emails come from a Gmail account for now, so they can land in spam in a first test. The fix is a verified domain with a transactional email service such as Resend.
 - Anyone with a second real inbox can verify it and get another roll.
-- Gallery sign in has no rate limit yet. Add one before making this public.
+- Wrong guesses are rate limited (10 per IP and 5 per email per 15 minutes on the gallery, 8 per party on host login), but the gate is still the party code plus an email, which suits a friend group and not a public launch.
 - No student discounts on the free tiers. Supabase's free plan has 500 MB of database and 1 GB of files, and pauses a project after a week of no use.
 - Not built yet: download all as a zip, close joining separately, remove a guest, a host preview before release, and a one-time email code for the gallery.
+- Uploads must be a complete JPEG under 1.5 MB and between 200 and 2000 px, so the app cannot be used as free file storage.
 
 No usage numbers yet. The success metrics and the experiment plan for the first real party are in the [PRD](https://docs.google.com/document/d/1VgeECIlaB-PrDUbMq3PXDZ46z1wrvCSM3aOsD5Ivq6w/edit).
 
@@ -87,7 +88,7 @@ No usage numbers yet. The success metrics and the experiment plan for the first 
 
 **1. Supabase**
 1. Create a free project at supabase.com.
-2. Open **SQL Editor**, paste all of `supabase/schema.sql`, and run it.
+2. Open **SQL Editor**, paste all of `supabase/schema.sql`, and run it. It also creates the table that rate limits wrong sign-in guesses.
 3. Open **Project Settings > API**. Copy the **Project URL** and the **service_role** key. Keep the service_role key secret.
 
 **2. Email**

@@ -372,7 +372,9 @@
     flashOn = !flashOn;
     try { localStorage.setItem('filmcam_flash', flashOn ? '1' : '0'); } catch (e) {}
     $('flashBtn').classList.toggle('on', flashOn);
+    $('flashBtn').setAttribute('aria-pressed', flashOn ? 'true' : 'false');
     if (flashOn) toast(facing === 'user' ? 'Flash on: screen lights up' : torchSupported() ? 'Flash on' : 'Flash on (simulated on this phone)');
+    else toast('Flash off');
   });
   $('ovRetry').addEventListener('click', startCamera);
   document.addEventListener('visibilitychange', () => {

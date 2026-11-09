@@ -1,4 +1,4 @@
-const { db, send, handler, fail, requireGuest, rand, rollClosed } = require('../lib/util');
+const { db, send, handler, fail, requireGuest, rand, rollClosed, jpegSize } = require('../lib/util');
 
 module.exports = handler('POST', async (req, res) => {
   const { guest, party } = await requireGuest(req);
@@ -8,8 +8,12 @@ module.exports = handler('POST', async (req, res) => {
   const match = image.match(/^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/);
   if (!match) throw fail(400, 'Bad image.');
   const buf = Buffer.from(match[1], 'base64');
-  if (buf.length < 1000 || buf.length > 3 * 1024 * 1024) throw fail(400, 'Image size is not valid.');
+  // The camera sends a ~960 px JPEG of a few hundred KB. Anything much bigger is not from the app.
+  if (buf.length < 1000 || buf.length > 1.5 * 1024 * 1024) throw fail(400, 'Image size is not valid.');
   if (!(buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff)) throw fail(400, 'Not a JPEG.');
+  if (!(buf[buf.length - 2] === 0xff && buf[buf.length - 1] === 0xd9)) throw fail(400, 'Not a complete JPEG.');
+  const dim = jpegSize(buf);
+  if (!dim || dim.width < 200 || dim.height < 200 || dim.width > 2000 || dim.height > 2600) throw fail(400, 'Image dimensions are not valid.');
 
   // Use up a shot first (atomic in the database), then upload.
   const { data: used, error: rpcErr } = await db().rpc('take_shot', { p_guest: guest.id, p_max: party.max_shots });

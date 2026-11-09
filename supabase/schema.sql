@@ -78,3 +78,27 @@ $$;
 insert into storage.buckets (id, name, public)
 values ('photos', 'photos', false)
 on conflict (id) do nothing;
+
+-- Rate limiting for wrong sign-in guesses (gallery and host login).
+-- Already set up the rest? Run just this block in the SQL Editor.
+create table if not exists rate_limits (
+  key text primary key,
+  hits int not null default 0,
+  window_start timestamptz not null default now()
+);
+alter table rate_limits enable row level security;
+
+create or replace function rate_hit(p_key text, p_window int)
+returns int
+language plpgsql
+as $$
+declare v int;
+begin
+  insert into rate_limits (key, hits, window_start) values (p_key, 1, now())
+  on conflict (key) do update set
+    hits = case when rate_limits.window_start < now() - make_interval(secs => p_window) then 1 else rate_limits.hits + 1 end,
+    window_start = case when rate_limits.window_start < now() - make_interval(secs => p_window) then now() else rate_limits.window_start end
+  returning hits into v;
+  return v;
+end;
+$$;
