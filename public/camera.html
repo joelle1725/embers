@@ -62,10 +62,12 @@
   .count { font-family: var(--mono); font-size: 13px; color: var(--muted); min-width: 56px; text-align: right; white-space: nowrap; }
   .count b { font-size: 22px; font-weight: 500; color: var(--ink); }
 
-  .looksbar { width: 100%; max-width: 520px; display: flex; gap: 22px; justify-content: center; padding: 0 12px; }
+  .looksbar { width: 100%; max-width: 520px; display: flex; gap: 16px; justify-content: center; align-items: center; padding: 0 12px; }
   .lk { width: auto; margin: 0; padding: 6px 2px 7px; font-size: 14px; font-weight: 500; background: transparent; color: #7c7c7c; border: 0; border-bottom: 2px solid transparent; border-radius: 0; box-shadow: none; }
   .lk:hover { background: transparent; color: var(--ink); }
   .lk.on { color: #f2f2f2; border-bottom-color: var(--accent); }
+  .lk.date { margin-left: 8px; padding-left: 14px; border-left: 1px solid #2a2a2a; }
+  .lk.date.on { border-bottom-color: transparent; color: var(--pink-soft); }
 
   .controls { width: 100%; max-width: 420px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; }
   .shutter { width: 80px; height: 80px; margin: 0; padding: 0; border-radius: 50%; background: transparent; border: 2px solid #d5d5d5; box-shadow: none; position: relative; }
@@ -146,9 +148,10 @@
   if (!token) { location.replace('/?p=' + (localStorage.getItem('filmcam_party') || '')); return; }
 
   const video = $('video'), shutter = $('shutter'), work = $('work');
-  let maxShots = 10, facing = 'environment', stream = null, left = 0, busy = false, look = 'classic', closed = false, flashOn = false, hostLook = 'classic';
+  let stampPref = null, maxShots = 10, facing = 'environment', stream = null, left = 0, busy = false, look = 'classic', closed = false, flashOn = false, hostLook = 'classic';
 
   $('stamp').textContent = stampText(new Date());
+  try { const sp = localStorage.getItem('filmcam_stamp'); stampPref = sp === '1' ? true : sp === '0' ? false : null; } catch (e) {}
   buildLooksBar();
   try { flashOn = localStorage.getItem('filmcam_flash') === '1'; } catch (e) {}
   $('flashBtn').classList.toggle('on', flashOn);
@@ -164,6 +167,23 @@
       b.addEventListener('click', () => { try { localStorage.setItem('filmcam_look', k); } catch (e) {} setLook(k); });
       bar.appendChild(b);
     });
+    const d = document.createElement('button');
+    d.type = 'button'; d.className = 'lk date'; d.id = 'dateBtn'; d.textContent = 'Date';
+    d.addEventListener('click', () => {
+      stampPref = !stampOn();
+      try { localStorage.setItem('filmcam_stamp', stampPref ? '1' : '0'); } catch (e) {}
+      applyStamp();
+      toast(stampPref ? 'Date stamp on' : 'Date stamp off');
+    });
+    bar.appendChild(d);
+  }
+  // The stamp follows the look's default until the guest chooses.
+  function stampOn() { return stampPref === null ? Boolean(LOOKS[look].stamp) : stampPref; }
+  function applyStamp() {
+    const on = stampOn();
+    $('stamp').style.display = on ? '' : 'none';
+    $('stamp').style.color = LOOKS[look].stamp || '#ff9a3c';
+    const d = $('dateBtn'); if (d) { d.classList.toggle('on', on); d.setAttribute('aria-pressed', on ? 'true' : 'false'); }
   }
   function setLook(key) {
     look = LOOKS[key] ? key : 'classic';
@@ -173,8 +193,7 @@
     vf.style.setProperty('--tint', L.css.tint);
     vf.style.setProperty('--grain', L.css.grain);
     vf.style.setProperty('--vig', L.vig);
-    $('stamp').style.display = L.stamp ? '' : 'none';
-    if (L.stamp) $('stamp').style.color = L.stamp;
+    applyStamp();
     document.querySelectorAll('.lk').forEach((b) => b.classList.toggle('on', b.dataset.k === look));
   }
 
@@ -306,7 +325,7 @@
     const ctx = work.getContext('2d', { willReadFrequently: true });
     ctx.drawImage(video, sx, sy, sw, sh, 0, 0, outW, outH);
     if (simulatedFlash) flashBoost(ctx, outW, outH);
-    applyLook(ctx, outW, outH, look, new Date());
+    applyLook(ctx, outW, outH, look, new Date(), stampOn());
     return work.toDataURL('image/jpeg', 0.82);
   }
 

@@ -3,27 +3,27 @@
   const LOOKS = {
     classic: {
       name: 'Classic disposable',
-      blurb: 'Warm, grainy, faded blacks. The one-time-use camera feel.',
-      contrast: 1.1, mul: [1.07, 1.02, 0.88], gain: 0.9, lift: [16, 13, 10], grain: 44, sat: 1.0, vig: 0.5, stamp: '#ff9a3c',
-      css: { filter: 'contrast(1.08) saturate(1.1) sepia(0.2) brightness(1.03)', tint: 'rgba(255,150,50,0.10)', grain: 0.35 },
+      blurb: 'Warm, soft grain, faded blacks. The one-time-use camera feel.',
+      contrast: 1.1, mul: [1.07, 1.02, 0.88], gain: 0.9, lift: [16, 13, 10], grain: 26, sat: 1.0, vig: 0.5, stamp: '#ff9a3c',
+      css: { filter: 'contrast(1.08) saturate(1.1) sepia(0.2) brightness(1.03)', tint: 'rgba(255,150,50,0.10)', grain: 0.2 },
     },
     golden: {
       name: 'Golden hour',
       blurb: 'Soft, honeyed and glowing. Flattering for faces and string lights.',
-      contrast: 0.98, mul: [1.12, 1.04, 0.82], gain: 0.88, lift: [26, 18, 9], grain: 30, sat: 1.12, vig: 0.42, stamp: '#ffb04a',
-      css: { filter: 'contrast(1.0) saturate(1.2) sepia(0.3) brightness(1.06)', tint: 'rgba(255,170,70,0.16)', grain: 0.25 },
+      contrast: 0.98, mul: [1.12, 1.04, 0.82], gain: 0.88, lift: [26, 18, 9], grain: 18, sat: 1.12, vig: 0.42, stamp: '#ffb04a',
+      css: { filter: 'contrast(1.0) saturate(1.2) sepia(0.3) brightness(1.06)', tint: 'rgba(255,170,70,0.16)', grain: 0.15 },
     },
     cool35: {
       name: 'Cool 35mm',
-      blurb: 'Cooler shadows and punchy color, like daylight film. No date stamp.',
-      contrast: 1.12, mul: [0.97, 1.03, 1.06], gain: 0.92, lift: [8, 13, 18], grain: 36, sat: 1.0, vig: 0.4, stamp: null,
-      css: { filter: 'contrast(1.1) saturate(1.05) hue-rotate(-4deg) brightness(1.02)', tint: 'rgba(90,150,200,0.10)', grain: 0.30 },
+      blurb: 'Cooler shadows and punchy color, like daylight film. No date stamp unless you add one.',
+      contrast: 1.12, mul: [0.97, 1.03, 1.06], gain: 0.92, lift: [8, 13, 18], grain: 22, sat: 1.0, vig: 0.4, stamp: null,
+      css: { filter: 'contrast(1.1) saturate(1.05) hue-rotate(-4deg) brightness(1.02)', tint: 'rgba(90,150,200,0.10)', grain: 0.18 },
     },
     mono: {
       name: 'Black and white',
-      blurb: 'High contrast and heavy grain. Timeless, a little dramatic.',
-      contrast: 1.22, mul: [1, 1, 1], gain: 0.95, lift: [10, 10, 10], grain: 56, sat: 0, vig: 0.55, stamp: null,
-      css: { filter: 'grayscale(1) contrast(1.2) brightness(1.03)', tint: 'rgba(0,0,0,0)', grain: 0.42 },
+      blurb: 'High contrast with a little grain. Timeless, a little dramatic.',
+      contrast: 1.22, mul: [1, 1, 1], gain: 0.95, lift: [10, 10, 10], grain: 34, sat: 0, vig: 0.55, stamp: null,
+      css: { filter: 'grayscale(1) contrast(1.2) brightness(1.03)', tint: 'rgba(0,0,0,0)', grain: 0.26 },
     },
   };
 
@@ -35,7 +35,7 @@
   const clamp = (v) => (v < 0 ? 0 : v > 255 ? 255 : v);
 
   // Bakes the look into the canvas pixels (per pixel, so it works the same on iPhone and Android).
-  function applyLook(ctx, w, h, key, date) {
+  function applyLook(ctx, w, h, key, date, showStamp) {
     const L = LOOKS[key] || LOOKS.classic;
     const img = ctx.getImageData(0, 0, w, h);
     const d = img.data;
@@ -57,13 +57,14 @@
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w, h);
 
-    if (L.stamp) {
+    const stampOn = showStamp === undefined ? Boolean(L.stamp) : showStamp;
+    if (stampOn) {
       ctx.font = Math.round(w * 0.036) + 'px "Courier New", monospace';
       ctx.textAlign = 'right';
       ctx.textBaseline = 'alphabetic';
       ctx.shadowColor = 'rgba(255,120,0,0.8)';
       ctx.shadowBlur = Math.round(w * 0.008);
-      ctx.fillStyle = L.stamp;
+      ctx.fillStyle = L.stamp || '#ff9a3c';
       ctx.fillText(stampText(date || new Date()), w - w * 0.05, h - w * 0.045);
       ctx.shadowBlur = 0;
     }
