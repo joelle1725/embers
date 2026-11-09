@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#f8f1e8">
+<meta name="theme-color" content="#0a0a0a">
 <meta name="robots" content="noindex">
 <title>Embers Host</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -13,12 +13,15 @@
 <link rel="stylesheet" href="/style.css">
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <style>
-  .linkbox { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-family: var(--mono); font-size: 14px; word-break: break-all; margin: 10px 0 0; text-align: left; }
+  .linkbox { background: #0a0a0a; color: #d5d5d5; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-family: var(--mono); font-size: 14px; word-break: break-all; margin: 10px 0 0; text-align: left; }
   .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
   .row.left { justify-content: flex-start; }
-  details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-top: 14px; }
-  .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--peach); color: var(--accent-dark); }
-  .pill.closed { background: #e4e0d8; color: #5d554d; }
+  .endnow { text-align: center; margin: -4px 0 4px; }
+  .endnow button { max-width: 320px; margin-top: 0; }
+  .endnow p { margin: 8px 0 0; }
+  details summary { cursor: pointer; color: var(--pink-soft); font-size: 14px; margin-top: 14px; }
+  .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: rgba(255,20,147,0.15); color: var(--pink-soft); border: 1px solid rgba(255,20,147,0.4); }
+  .pill.closed { background: #353535; color: #d5d5d5; border-color: #353535; }
 </style>
 </head>
 <body>
@@ -83,6 +86,11 @@
     </details>
   </div>
 
+  <div class="endnow" id="endNowWrap">
+    <button id="endNow" class="ghost" type="button">End the roll now</button>
+    <p class="small muted">Closes the camera for everyone right away. You can still send the gallery afterwards.</p>
+  </div>
+
   <div class="card">
     <h2>When the roll ends</h2>
     <p class="muted small" style="margin:0 0 4px;">After this time the camera closes for everyone, even if they have shots left. <span id="endState"></span></p>
@@ -96,7 +104,6 @@
     <div class="row left">
       <button id="saveEnd" class="small" type="button">Save end time</button>
       <button id="clearEnd" class="ghost small" type="button">Remove end time</button>
-      <button id="endNow" class="ghost small" type="button">End the roll now</button>
     </div>
     <div id="endMsg" class="msg"></div>
   </div>
@@ -263,7 +270,7 @@
     $('pCode').textContent = p.code;
     const url = location.origin + '/?p=' + p.code;
     $('joinUrl').textContent = url;
-    if (window.QRCode) QRCode.toCanvas($('qr'), url, { width: 240, margin: 2, color: { dark: '#2c201c', light: '#fffaf3' } }, () => {});
+    if (window.QRCode) QRCode.toCanvas($('qr'), url, { width: 240, margin: 2, color: { dark: '#0a0a0a', light: '#d5d5d5' } }, () => {});
 
     if (forceEnd || !editingEnd) $('endsAt').value = p.endsAt ? toLocalInput(p.endsAt) : '';
     if (forceEnd) editingEnd = false;
@@ -271,6 +278,7 @@
       : p.closed ? '<span class="pill closed">Roll ended</span>'
       : p.endsAt ? '<span class="pill">Open until ' + new Date(p.endsAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + '</span>'
       : '<span class="pill">No end time set: open until you send the gallery</span>';
+    $('endNowWrap').classList.toggle('hidden', p.closed);
     lookKey = LOOKS[p.filmLook] ? p.filmLook : 'classic';
     markLook();
 

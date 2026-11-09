@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#261c1a">
+<meta name="theme-color" content="#0a0a0a">
 <title>Embers Camera</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,19 +11,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 <style>
-  /* The camera screen stays dark so the viewfinder is easy to read, but warm instead of black. */
-  :root { --bg: #261c1a; --card: #33261f; --line: #4d3b34; --ink: #f8ece0; --muted: #c1ab9e; --accent: #e07a62; --accent-dark: #c9644d; --peach: #4a2e26; --rose: #3d2622; }
-  body { background-image: radial-gradient(500px 300px at 50% 0%, #45292300 0%, #3a241f 100%); background-color: #261c1a; color: var(--ink); padding: 12px 0 18px; justify-content: space-between; overflow: hidden; }
+  body { padding: 12px 0 18px; justify-content: space-between; overflow: hidden; }
   .top { width: 100%; max-width: 520px; display: flex; justify-content: space-between; align-items: center; padding: 0 16px; }
   .party { font-size: 14px; color: var(--muted); max-width: 55%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .counter { font-family: var(--mono); background: #1a1210; border: 1px solid var(--line); border-radius: 10px; padding: 6px 12px; color: #f2b9a4; font-size: 22px; letter-spacing: 3px; }
+  .counter { font-family: var(--mono); background: #000; border: 1px solid var(--line); border-radius: 10px; padding: 6px 12px; color: var(--accent); text-shadow: 0 0 10px rgba(255,20,147,0.5); font-size: 22px; letter-spacing: 3px; }
   .closes { font-size: 12px; color: var(--muted); text-align: center; min-height: 16px; }
   .counter small { font-size: 11px; color: var(--muted); letter-spacing: 1px; margin-left: 6px; }
 
   .viewfinder {
     position: relative; overflow: hidden; background: #000; border-radius: 10px;
     aspect-ratio: 3 / 4; width: min(100vw - 24px, calc((100dvh - 210px) * 0.75));
-    box-shadow: 0 0 0 2px #4d3b34;
+    box-shadow: 0 0 0 2px #353535;
   }
   video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   video.mirror { transform: scaleX(-1); }
@@ -43,22 +41,22 @@
   @keyframes flash { 0% { opacity: 0.85; } 100% { opacity: 0; } }
 
   .controls { width: 100%; max-width: 520px; display: flex; align-items: center; justify-content: space-around; padding: 0 16px; }
-  .shutter { width: 78px; height: 78px; margin: 0; padding: 0; border-radius: 50%; background: #f8ece0; border: 6px solid #261c1a; box-shadow: 0 0 0 3px #f8ece0; }
-  .shutter:hover { background: #f8ece0; }
+  .shutter { width: 78px; height: 78px; margin: 0; padding: 0; border-radius: 50%; background: #d5d5d5; border: 6px solid #0a0a0a; box-shadow: 0 0 0 3px #d5d5d5; }
+  .shutter:hover { background: #d5d5d5; }
   .shutter:active { transform: scale(0.94); }
   .shutter:disabled { opacity: 0.4; }
   .side { width: 56px; height: 56px; margin: 0; padding: 0; border-radius: 50%; background: transparent; border: 1px solid var(--line); color: var(--ink); font-size: 22px; }
-  .side.on { background: #f2b9a4; color: #261c1a; border-color: #f2b9a4; }
+  .side.on { background: var(--accent); color: #0a0a0a; border-color: var(--accent); box-shadow: 0 0 14px rgba(255,20,147,0.5); }
   .looksbar { width: 100%; max-width: 520px; display: flex; gap: 8px; justify-content: center; padding: 0 12px; flex-wrap: wrap; }
   .lk { width: auto; margin: 0; padding: 7px 13px; font-size: 13px; font-weight: 500; background: transparent; color: var(--muted); border: 1px solid var(--line); }
   .lk:hover { background: transparent; }
-  .lk.on { background: #f8ece0; color: #261c1a; border-color: #f8ece0; }
+  .lk.on { background: var(--accent); color: #0a0a0a; border-color: var(--accent); }
   .fullflash { position: fixed; inset: 0; background: #fff; z-index: 6; opacity: 0; pointer-events: none; transition: opacity 0.12s; }
   .fullflash.on { opacity: 1; }
 
-  .toast { position: fixed; left: 50%; top: 64px; transform: translateX(-50%); background: #1a1210e6; color: var(--ink); padding: 8px 14px; border-radius: 20px; font-size: 14px; opacity: 0; transition: opacity 0.2s; pointer-events: none; max-width: 90%; text-align: center; z-index: 5; }
+  .toast { position: fixed; left: 50%; top: 64px; transform: translateX(-50%); background: #000000e6; color: var(--ink); padding: 8px 14px; border-radius: 20px; font-size: 14px; opacity: 0; transition: opacity 0.2s; pointer-events: none; max-width: 90%; text-align: center; z-index: 5; }
   .toast.show { opacity: 1; }
-  .toast.err { background: #5a1d16e6; }
+  .toast.err { background: #5a1020e6; }
 
   .overlay { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28px; text-align: center; z-index: 10; }
   .overlay .btn, .overlay button { max-width: 320px; }

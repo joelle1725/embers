@@ -69,10 +69,10 @@ module.exports = handler('POST', async (req, res) => {
   const result = await sendMany([{
     to: guestEmail,
     subject: `Your code for ${party.name}: ${verifyCode}`,
-    html: `<div style="font-family:Georgia,serif;max-width:420px;margin:0 auto;padding:24px;color:#2c201c">
+    html: `<div style="font-family:Georgia,serif;max-width:420px;margin:0 auto;padding:24px;color:#d5d5d5;background:#0a0a0a;border:1px solid #353535;border-radius:16px">
       <p>Hi ${escapeHtml(guestName)}, your code for <b>${escapeHtml(party.name)}</b> is:</p>
-      <p style="font-size:32px;letter-spacing:6px;margin:12px 0"><b>${verifyCode}</b></p>
-      <p style="font-size:13px;color:#86756a">It expires in ${CODE_MINUTES} minutes.</p></div>`,
+      <p style="font-size:32px;letter-spacing:6px;margin:12px 0;color:#ff1493"><b>${verifyCode}</b></p>
+      <p style="font-size:13px;color:#9a9a9a">It expires in ${CODE_MINUTES} minutes.</p></div>`,
   }]);
   if (result.failed.length) throw fail(500, 'Could not send the email. Check the address and try again.');
 

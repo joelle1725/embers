@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f8f1e8">
+<meta name="theme-color" content="#0a0a0a">
 <meta name="robots" content="noindex">
 <title>Embers Gallery</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -14,10 +14,10 @@
 <style>
   .grid { width: 100%; max-width: 920px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 16px; }
   @media (min-width: 640px) { .grid { grid-template-columns: repeat(3, 1fr); } }
-  .shot { position: relative; aspect-ratio: 3 / 4; background: #e9dccd; border-radius: 12px; overflow: hidden; cursor: pointer; box-shadow: var(--shadow); }
+  .shot { position: relative; aspect-ratio: 3 / 4; background: #353535; border-radius: 12px; overflow: hidden; cursor: pointer; box-shadow: var(--shadow); }
   .shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
   /* The name is an overlay on the page only. It is NOT part of the image file. */
-  .tag { position: absolute; left: 10px; bottom: 8px; right: 10px; font-family: var(--mono); font-size: 12px; color: #fff7ef; text-shadow: 0 1px 4px #000a, 0 0 2px #000a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+  .tag { position: absolute; left: 10px; bottom: 8px; right: 10px; font-family: var(--mono); font-size: 12px; color: #fff; text-shadow: 0 1px 4px #000a, 0 0 2px #000a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
   body.notags .tag { display: none; }
 
   .tools { width: 100%; max-width: 920px; margin-top: 8px; }
@@ -30,12 +30,12 @@
   .toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); margin: 0; }
   .toggle input { width: 18px; height: 18px; accent-color: var(--accent); }
 
-  .lb { position: fixed; inset: 0; background: rgba(38, 28, 26, 0.94); z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; color: #f8ece0; }
+  .lb { position: fixed; inset: 0; background: rgba(10, 10, 10, 0.95); z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; color: #d5d5d5; }
   .lb .frame { position: relative; max-width: 100%; max-height: calc(100dvh - 160px); }
   .lb img { max-width: 100%; max-height: calc(100dvh - 160px); display: block; border-radius: 10px; }
   .lb .row { display: flex; gap: 10px; width: 100%; max-width: 420px; margin-top: 14px; }
   .lb .row button { margin-top: 0; }
-  .lb .ghost { color: #f8ece0; border-color: #6b564d; }
+  .lb .ghost { color: #d5d5d5; border-color: #353535; }
 </style>
 </head>
 <body>
@@ -80,7 +80,7 @@
     <button id="next" class="ghost" aria-label="Next">&rsaquo;</button>
   </div>
   <button id="close" class="ghost small" style="margin-top:12px;">Close</button>
-  <p class="small" id="saveNote" style="margin:10px 0 0;color:#c1ab9e;">Saved photos do not have the name on them.</p>
+  <p class="small" id="saveNote" style="margin:10px 0 0;color:#9a9a9a;">Saved photos do not have the name on them.</p>
 </div>
 
 <script src="/common.js"></script>
