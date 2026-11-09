@@ -79,8 +79,13 @@
   if (!partyCode) $('codeRow').classList.remove('hidden');
   $('code').value = partyCode;
 
-  // Already joined on this phone? Skip straight to the camera.
-  const saved = localStorage.getItem('filmcam_token');
+  // Already joined on this phone? Skip straight to the camera, unless this link is for a
+  // different gathering than the one saved here. Then show the join form for the new one.
+  const urlCode = (params.get('p') || '').toUpperCase();
+  const savedParty = (localStorage.getItem('filmcam_party') || '').toUpperCase();
+  const otherGathering = Boolean(urlCode && savedParty && urlCode !== savedParty);
+  if (otherGathering) localStorage.removeItem('filmcam_token');
+  const saved = otherGathering ? null : localStorage.getItem('filmcam_token');
   if (saved) {
     api('/api/me', { token: saved })
       .then(() => { location.replace('/camera'); })
