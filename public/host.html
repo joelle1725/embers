@@ -88,7 +88,8 @@
 
   <div class="endnow" id="endNowWrap">
     <button id="endNow" class="ghost" type="button">End the roll now</button>
-    <p class="small muted">Closes the camera for everyone right away. You can still send the gallery afterwards.</p>
+    <button id="reopen" class="ghost hidden" type="button">Reopen the roll</button>
+    <p class="small muted" id="endNowNote">Closes the camera for everyone right away. You can still send the gallery afterwards.</p>
   </div>
 
   <div class="card">
@@ -258,6 +259,18 @@
     if (confirm('Close the camera for everyone now? You can still send the gallery later.')) saveEnds({ closeNow: true }, 'The roll has ended.');
   });
 
+  $('reopen').addEventListener('click', () => {
+    const released = current && current.party.released;
+    const msg = released
+      ? 'Reopen the roll? The gallery will be hidden again until you send it, and anyone who opens their emailed link will see "still developing".'
+      : 'Reopen the roll? The camera opens again with no end time. You can set a new one below.';
+    if (!confirm(msg)) return;
+    $('endMsg').className = 'msg'; $('endMsg').textContent = 'Reopening...';
+    api('/api/host-settings', { method: 'POST', token, body: { reopen: true } })
+      .then(() => { ok($('endMsg'), 'Reopened. Guests can refresh their camera page to keep shooting.'); return refresh(true); })
+      .catch((x) => err($('endMsg'), x));
+  });
+
   // ---- Dashboard ----
   let editingEnd = false;
   $('endsAt').addEventListener('focus', () => { editingEnd = true; });
@@ -278,7 +291,12 @@
       : p.closed ? '<span class="pill closed">Roll ended</span>'
       : p.endsAt ? '<span class="pill">Open until ' + new Date(p.endsAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + '</span>'
       : '<span class="pill">No end time set: open until you send the gallery</span>';
-    $('endNowWrap').classList.toggle('hidden', p.closed);
+    $('endNow').classList.toggle('hidden', p.closed);
+    $('reopen').classList.toggle('hidden', !p.closed);
+    $('endNowNote').textContent = p.released
+      ? 'The gallery has been sent. Reopening hides it again and lets guests with shots left keep shooting.'
+      : p.closed ? 'The camera is closed. Reopen it to let guests with shots left keep shooting. They just refresh the page.'
+      : 'Closes the camera for everyone right away. You can still send the gallery afterwards.';
     lookKey = LOOKS[p.filmLook] ? p.filmLook : 'classic';
     markLook();
 

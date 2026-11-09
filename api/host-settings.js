@@ -3,10 +3,15 @@ const { db, send, handler, fail, requireHost, parseEndsAt, LOOKS } = require('..
 // Host changes the roll end time, the film look, or closes the roll right now.
 module.exports = handler('POST', async (req, res) => {
   const party = await requireHost(req);
-  const { endsAt, filmLook, closeNow } = req.body || {};
+  const { endsAt, filmLook, closeNow, reopen } = req.body || {};
   const patch = {};
 
-  if (closeNow) patch.ends_at = new Date().toISOString();
+  if (reopen) {
+    // Undo the end of the roll, and hide the gallery again if it was already released.
+    patch.released = false;
+    patch.released_at = null;
+    patch.ends_at = endsAt !== undefined ? parseEndsAt(endsAt) : null;
+  } else if (closeNow) patch.ends_at = new Date().toISOString();
   else if (endsAt !== undefined) patch.ends_at = parseEndsAt(endsAt);
 
   if (filmLook !== undefined) {
