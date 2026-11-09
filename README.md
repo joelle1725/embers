@@ -1,5 +1,7 @@
 # Embers
 
+> A personal project by Joelle Liu, built with Claude as an MVP.
+
 A disposable camera for your party, in the browser. Guests tap a shared link, join with a name and email, confirm a 6 digit code, and get 10 shots with a film look the host picked. Photos stay hidden until the host develops the film, then everyone opens one shared gallery with the party code and their email.
 
 ## How it works
