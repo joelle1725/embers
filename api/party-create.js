@@ -1,6 +1,9 @@
 const { db, send, handler, fail, partyCode, hashPassword, signHostToken, parseEndsAt, LOOKS } = require('../lib/util');
 
-module.exports = handler('POST', async (req, res) => {
+module.exports = handler(['GET', 'POST'], async (req, res) => {
+  // The host page asks this first, so it only shows the passcode box when one is set.
+  if (req.method === 'GET') return send(res, 200, { needsKey: Boolean(process.env.CREATE_PASSCODE) });
+
   const { name, hostPassword, createKey, endsAt, filmLook } = req.body || {};
 
   // Optional: stops strangers from creating gatherings on your deployment.

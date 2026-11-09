@@ -46,7 +46,7 @@
       <input id="cKey" type="password" autocomplete="off">
     </div>
     <button type="submit">Create gathering</button>
-    <button type="button" id="showKey" class="ghost small" style="margin-top:10px;">I set a creator passcode</button>
+    <button type="button" id="showKey" class="ghost small hidden" style="margin-top:10px;">I set a creator passcode</button>
     <div id="createMsg" class="msg"></div>
   </form>
 
@@ -156,6 +156,8 @@
   }
   $('tabCreate').addEventListener('click', () => show('create'));
   $('tabLogin').addEventListener('click', () => show('login'));
+  // Only offer the creator passcode box when the site owner turned that lock on.
+  api('/api/party-create').then((r) => { if (r && r.needsKey) $('showKey').classList.remove('hidden'); }).catch(() => {});
   $('showKey').addEventListener('click', () => { $('keyRow').classList.remove('hidden'); $('showKey').classList.add('hidden'); });
 
   function err(el, e) { el.className = 'msg error'; el.textContent = e.message; }
