@@ -29,29 +29,29 @@
 <div class="wrap" id="authView">
   <div class="brand"><span class="dot"></span>Embers</div>
   <h1>Host</h1>
-  <p class="muted">Create a party, or log in to one you already made.</p>
+  <p class="muted">Create a gathering, or log in to one you already made.</p>
 
   <div class="tabs">
-    <button id="tabCreate" class="on" type="button">New party</button>
+    <button id="tabCreate" class="on" type="button">New gathering</button>
     <button id="tabLogin" type="button">Log in</button>
   </div>
 
   <form id="createForm" class="card">
-    <label for="cName">Party name</label>
-    <input id="cName" type="text" maxlength="80" placeholder="Joelle's Halloween Party" required>
+    <label for="cName">Gathering name</label>
+    <input id="cName" type="text" maxlength="80" placeholder="Sunday dinner at Joelle's" required>
     <label for="cPass">Host password</label>
     <input id="cPass" type="password" minlength="6" autocomplete="new-password" placeholder="At least 6 characters" required>
     <div id="keyRow" class="hidden">
       <label for="cKey">Creator passcode</label>
       <input id="cKey" type="password" autocomplete="off">
     </div>
-    <button type="submit">Create party</button>
+    <button type="submit">Create gathering</button>
     <button type="button" id="showKey" class="ghost small" style="margin-top:10px;">I set a creator passcode</button>
     <div id="createMsg" class="msg"></div>
   </form>
 
   <form id="loginForm" class="card hidden">
-    <label for="lCode">Party code</label>
+    <label for="lCode">Gathering code</label>
     <input id="lCode" type="text" autocapitalize="characters" maxlength="6" placeholder="ABC123" required>
     <label for="lPass">Host password</label>
     <input id="lPass" type="password" autocomplete="current-password" required>
@@ -64,7 +64,7 @@
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
     <div>
       <div class="brand" style="margin-bottom:4px;"><span class="dot"></span>Embers host</div>
-      <h1 id="pName" style="margin:0;">Party</h1>
+      <h1 id="pName" style="margin:0;">Gathering</h1>
     </div>
     <button id="logout" class="ghost small" type="button">Log out</button>
   </div>
@@ -77,7 +77,7 @@
       <button id="copyLink" class="small" type="button">Copy link</button>
       <button id="shareLink" class="ghost small hidden" type="button">Share...</button>
     </div>
-    <p class="small muted" style="margin:16px 0 0;">Party code</p>
+    <p class="small muted" style="margin:16px 0 0;">Gathering code</p>
     <div class="code" id="pCode"></div>
     <p class="small muted" style="margin:0;">Guests also need this code (and their email) to open the gallery.</p>
     <details>
@@ -112,7 +112,7 @@
 
   <div class="card">
     <h2>Film look</h2>
-    <p class="muted small" style="margin:0;">How every photo from this party looks. Samples below use a made-up scene. You can change this until the party starts.</p>
+    <p class="muted small" style="margin:0;">How every photo from this gathering looks. Samples below use a made-up scene. You can change this until the gathering starts.</p>
     <div class="looks" id="looks"></div>
     <div id="lookMsg" class="msg"></div>
   </div>
@@ -328,7 +328,7 @@
   if (navigator.share) {
     $('shareLink').classList.remove('hidden');
     $('shareLink').addEventListener('click', () => {
-      const name = current ? current.party.name : 'the party';
+      const name = current ? current.party.name : 'the gathering';
       navigator.share({ title: name, text: 'Join ' + name + ' on Embers. Take 10 shots on a disposable camera.', url: $('joinUrl').textContent }).catch(() => {});
     });
   }

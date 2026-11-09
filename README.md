@@ -1,6 +1,6 @@
 # Embers
 
-**A disposable camera for your party, in the browser.** Guests tap a link, get 10 shots, and see nothing until the host develops the film. Then everyone gets one shared gallery.
+**A disposable camera for your gathering, in the browser.** Guests tap a link, get 10 shots, and see nothing until the host develops the film. Then everyone gets one shared gallery.
 
 > A personal project by Joelle Liu, built with Claude as an MVP.
 
@@ -16,7 +16,7 @@
 
 ## The problem
 
-After a party, the photos are scattered across 20 phones and the host spends days texting people for them. Guests who fire off hundreds of near-identical shots bury the good ones, and guests who took none never see the night.
+After a gathering, the photos are scattered across 20 phones and the host spends days texting people for them. Guests who fire off hundreds of near-identical shots bury the good ones, and guests who took none never see the night.
 
 ## The idea
 
@@ -36,21 +36,21 @@ I played product owner and builder: framing the problem, researching competitors
 | Website, not an app | A link in the group chat beats an install, so more guests actually join | Camera needs HTTPS, in-app browsers can block it, no push notifications |
 | Host sets a roll end time, enforced on the server | Guests keep the film feel without burning all 10 shots | A late guest may find the roll closed |
 | Photos hidden until the host releases them (host cannot peek either) | Keeps the surprise and stops reshooting the same moment | Guests cannot check a photo right after taking it |
-| Gallery needs the party code plus the email that joined | Keeps the link shareable without exposing photos | A guessable email plus the code gets someone in. Fine for a friend group, not for public use |
+| Gallery needs the gathering code plus the email that joined | Keeps the link shareable without exposing photos | A guessable email plus the code gets someone in. Fine for a friend group, not for public use |
 | Email code on join, shot count tied to a normalized email | Stops fake or borrowed addresses from getting extra rolls | One extra step at the door |
 
 ## Features
 
 **Guests**
-- Join from a shared link with a link preview that shows the party name
+- Join from a shared link with a link preview that shows the gathering name
 - Camera with four film looks (classic disposable, golden hour, cool 35mm, black and white). The host sets the default and guests can switch. The look is baked into each photo with light film grain. An orange date stamp is optional: a Date button turns it on or off, and the choice is remembered on that phone
 - Flash: real torch on Android back cameras, a white screen glow on the front camera, and a simulated flash look on iPhone back cameras, where Safari cannot reach the torch
 - 10 shots per guest counted in the database, so refreshing or re-entering an email never resets it. A failed upload does not use up a shot
 - Warning for in-app browsers (Instagram, Snapchat) with steps to open Safari or Chrome
-- Gallery sign in with party code plus email, or the personal link in the email. Search by name, or tap **My photos**. Names are an overlay, so saved photos are clean
+- Gallery sign in with gathering code plus email, or the personal link in the email. Search by name, or tap **My photos**. Names are an overlay, so saved photos are clean
 
 **Hosts**
-- Create a party, get a code and invite link (QR code optional)
+- Create a gathering, get a code and invite link (QR code optional)
 - Pick a clock time when the roll ends, or end it right now, or reopen it
 - See guests and shots used, then press **Send the gallery** to email everyone
 - Delete a photo after release. The file is removed from storage first, so it frees space, and the guest does not get the shot back
@@ -70,19 +70,19 @@ Gmail SMTP via nodemailer (join codes, gallery emails)
 - **Frontend:** plain HTML, CSS and JavaScript. The film looks are per-pixel canvas filters applied before upload, so the saved file already has the look.
 - **Backend:** Vercel serverless functions in Node. The Supabase service key lives only on the server.
 - **Shot limit:** `take_shot` and `give_back_shot` are Postgres functions, so two quick taps cannot overspend the roll.
-- **Auth without accounts:** guests get a session token after email verification. Hosts log in with the party code and a password (scrypt hashed) and receive an HMAC signed token.
+- **Auth without accounts:** guests get a session token after email verification. Hosts log in with the gathering code and a password (scrypt hashed) and receive an HMAC signed token.
 - **Privacy:** photos sit in a private bucket and are only served through short-lived signed links. Row level security is on with no public policies.
 
 ## Known limits
 
 - Emails come from a Gmail account for now, so they can land in spam in a first test. The fix is a verified domain with a transactional email service such as Resend.
 - Anyone with a second real inbox can verify it and get another roll.
-- Wrong guesses are rate limited (10 per IP and 5 per email per 15 minutes on the gallery, 8 per party on host login), but the gate is still the party code plus an email, which suits a friend group and not a public launch.
+- Wrong guesses are rate limited (10 per IP and 5 per email per 15 minutes on the gallery, 8 per gathering on host login), but the gate is still the gathering code plus an email, which suits a friend group and not a public launch.
 - No student discounts on the free tiers. Supabase's free plan has 500 MB of database and 1 GB of files, and pauses a project after a week of no use.
 - Not built yet: download all as a zip, close joining separately, remove a guest, a host preview before release, and a one-time email code for the gallery.
 - Uploads must be a complete JPEG under 1.5 MB and between 200 and 2000 px, so the app cannot be used as free file storage.
 
-No usage numbers yet. The success metrics and the experiment plan for the first real party are in the [PRD](https://docs.google.com/document/d/1VgeECIlaB-PrDUbMq3PXDZ46z1wrvCSM3aOsD5Ivq6w/edit).
+No usage numbers yet. The success metrics and the experiment plan for the first real gathering are in the [PRD](https://docs.google.com/document/d/1VgeECIlaB-PrDUbMq3PXDZ46z1wrvCSM3aOsD5Ivq6w/edit).
 
 ## Run it yourself (about 30 minutes)
 
@@ -99,8 +99,8 @@ Turn on 2-step verification on a Google account, then create an App Password at 
 2. Add the variables from `.env.example` under **Settings > Environment Variables**. `SITE_URL` is your final URL, with no trailing slash.
 3. Redeploy after adding variables.
 
-**4. Run a party**
-Go to `/host`, create the party, set the end time and film look, and send the invite link to the group chat. The next day, log in and press **Send the gallery**.
+**4. Run a gathering**
+Go to `/host`, create the gathering, set the end time and film look, and send the invite link to the group chat. The next day, log in and press **Send the gallery**.
 
 ## Test checklist
 
@@ -118,7 +118,7 @@ Go to `/host`, create the party, set the end time and film look, and send the in
 api/        serverless endpoints (join, verify, shoot, gallery, host-*)
 lib/        shared helpers (database client, tokens, email)
 public/     camera, gallery and host pages, film looks, styles
-views/      join page template (link previews use the party name)
+views/      join page template (link previews use the gathering name)
 supabase/   schema.sql
 docs/       screenshots
 ```

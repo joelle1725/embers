@@ -3,13 +3,13 @@ const { db, send, handler, fail, partyCode, hashPassword, signHostToken, parseEn
 module.exports = handler('POST', async (req, res) => {
   const { name, hostPassword, createKey, endsAt, filmLook } = req.body || {};
 
-  // Optional: stops strangers from creating parties on your deployment.
+  // Optional: stops strangers from creating gatherings on your deployment.
   if (process.env.CREATE_PASSCODE && createKey !== process.env.CREATE_PASSCODE) {
     throw fail(403, 'Wrong creator passcode.');
   }
 
   const partyName = String(name || '').trim();
-  if (!partyName || partyName.length > 80) throw fail(400, 'Give your party a name (up to 80 characters).');
+  if (!partyName || partyName.length > 80) throw fail(400, 'Give your gathering a name (up to 80 characters).');
   if (!hostPassword || String(hostPassword).length < 6) throw fail(400, 'Host password must be at least 6 characters.');
 
   const ends = parseEndsAt(endsAt);
@@ -26,5 +26,5 @@ module.exports = handler('POST', async (req, res) => {
     if (!error) return send(res, 200, { code: data.code, hostToken: signHostToken(data.id) });
     if (error.code !== '23505') throw error; // anything but "code already exists"
   }
-  throw fail(500, 'Could not create the party. Try again.');
+  throw fail(500, 'Could not create the gathering. Try again.');
 });

@@ -49,7 +49,7 @@
 
   <form id="signin" class="card hidden" style="text-align:left;">
     <div id="codeRow">
-      <label for="gcode">Party code</label>
+      <label for="gcode">Gathering code</label>
       <input id="gcode" type="text" autocapitalize="characters" autocomplete="off" maxlength="6" placeholder="ABC123">
     </div>
     <label for="gemail">The email you joined with</label>
@@ -107,7 +107,7 @@
     $('gcode').value = urlCode || localStorage.getItem('filmcam_party') || '';
     $('codeRow').classList.toggle('hidden', Boolean(urlCode));
     $('gemail').value = profile.email || '';
-    say('Embers gallery', 'Enter the party code and the email you joined with.');
+    say('Embers gallery', 'Enter the gathering code and the email you joined with.');
     if (message) { $('gmsg').className = 'msg error'; $('gmsg').textContent = message; }
   }
 
@@ -118,7 +118,7 @@
     isHost = Boolean(r.isHost);
     if (!r.released) { $('sub').textContent = 'Your film is still developing. The host will email everyone when it is ready.'; return; }
     all = r.photos;
-    if (!all.length) { $('sub').textContent = 'No photos were taken at this party.'; return; }
+    if (!all.length) { $('sub').textContent = 'No photos were taken at this gathering.'; return; }
     $('sub').textContent = 'Everyone\'s photos, in the order they were taken.';
     $('tools').classList.remove('hidden');
     buildChips();

@@ -22,7 +22,7 @@ module.exports = async (req, res) => {
     }
     const host = req.headers['x-forwarded-host'] || req.headers.host || '';
     const origin = host ? `https://${host}` : (process.env.SITE_URL || '').replace(/\/$/, '');
-    const title = partyName ? `${partyName} on Embers` : 'Embers: one disposable camera for the party';
+    const title = partyName ? `${partyName} on Embers` : 'Embers: one disposable camera for your gathering';
     const desc = partyName
       ? 'Tap to join. You get 10 shots on a film camera in your browser, and everyone sees the photos once the host develops the film.'
       : 'A shared disposable camera in your browser. 10 shots each, and the photos stay hidden until the host develops the film.';

@@ -36,7 +36,7 @@
   <!-- Step 1: join -->
   <form id="joinForm" class="card" autocomplete="on">
     <div id="codeRow" class="hidden">
-      <label for="code">Party code</label>
+      <label for="code">Gathering code</label>
       <input id="code" type="text" autocapitalize="characters" autocomplete="off" maxlength="6" placeholder="ABC123">
     </div>
 
@@ -48,7 +48,7 @@
 
     <label class="check">
       <input id="consent" type="checkbox" required>
-      <span>I understand the photos I take are shared with everyone at this party, with my name shown on them in the gallery.</span>
+      <span>I understand the photos I take are shared with everyone at this gathering, with my name shown on them in the gallery.</span>
     </label>
 
     <button id="joinBtn" type="submit">Get my camera</button>
@@ -97,7 +97,7 @@
   $('joinForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const code = ($('code').value || partyCode).trim().toUpperCase();
-    if (!code) { $('joinMsg').className = 'msg error'; $('joinMsg').textContent = 'Enter the party code.'; return; }
+    if (!code) { $('joinMsg').className = 'msg error'; $('joinMsg').textContent = 'Enter the gathering code.'; return; }
     $('joinBtn').disabled = true;
     $('joinMsg').className = 'msg'; $('joinMsg').textContent = 'One moment...';
     try {

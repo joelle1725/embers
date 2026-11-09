@@ -70,7 +70,7 @@
     }
   }
 
-  // A made-up party scene (dusk sky, string lights, two silhouettes) so hosts can compare looks.
+  // A made-up evening scene (dusk sky, string lights, two silhouettes) so hosts can compare looks.
   function drawSample(canvas, key) {
     const w = canvas.width, h = canvas.height;
     const ctx = canvas.getContext('2d', { willReadFrequently: true });

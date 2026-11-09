@@ -1,6 +1,6 @@
 const { db, send, handler, fail, bearer, verifyHostToken, normalizeEmail, validEmail, clientIp, rateBlocked, rateFail, TOO_MANY } = require('../lib/util');
 
-// Shared gallery. You get in with the party code AND proof you belong to that party:
+// Shared gallery. You get in with the gathering code AND proof you belong to that gathering:
 //   POST { code, email }  the email you joined with (the sign-in form)
 //   GET  ?p=CODE&k=KEY    the personal key from your emailed link
 //   GET  with a guest session or host login token
@@ -8,7 +8,7 @@ module.exports = handler(['GET', 'POST'], async (req, res) => {
   const isPost = req.method === 'POST';
   const src = isPost ? (req.body || {}) : req.query;
   const code = String(src.code || src.p || '').trim().toUpperCase();
-  if (!code) throw fail(400, 'Enter the party code.');
+  if (!code) throw fail(400, 'Enter the gathering code.');
 
   // Rate limit wrong guesses: 10 per IP and 5 per party and email, per 15 minutes.
   const WIN = 15 * 60;
@@ -17,7 +17,7 @@ module.exports = handler(['GET', 'POST'], async (req, res) => {
   if (await rateBlocked(ipKey, 10, WIN) || (emailKey && await rateBlocked(emailKey, 5, WIN))) throw fail(429, TOO_MANY);
 
   const { data: party } = await db().from('parties').select('id, name, released').eq('code', code).maybeSingle();
-  if (!party) { await rateFail(ipKey, WIN); throw fail(404, 'That party code was not found.'); }
+  if (!party) { await rateFail(ipKey, WIN); throw fail(404, 'That gathering code was not found.'); }
 
   let viewer = null;
   let isHost = false;
@@ -27,7 +27,7 @@ module.exports = handler(['GET', 'POST'], async (req, res) => {
       .eq('email_norm', normalizeEmail(src.email)).eq('verified', true).maybeSingle();
     if (!data) {
       await rateFail(ipKey, WIN); await rateFail(emailKey, WIN);
-      throw fail(403, 'We could not find that email at this party. Use the email you joined with.');
+      throw fail(403, 'We could not find that email at this gathering. Use the email you joined with.');
     }
     viewer = data.name;
   } else {
@@ -46,7 +46,7 @@ module.exports = handler(['GET', 'POST'], async (req, res) => {
     }
     if (viewer === null) {
       if (key) await rateFail(ipKey, WIN);
-      throw fail(403, 'Sign in with the party code and your email to see the photos.');
+      throw fail(403, 'Sign in with the gathering code and your email to see the photos.');
     }
   }
 

@@ -16,8 +16,8 @@ module.exports = handler('POST', async (req, res) => {
     .select('id, name, released')
     .eq('code', String(code || '').trim().toUpperCase())
     .single();
-  if (!party) throw fail(404, 'That party code was not found. Scan the QR code again.');
-  if (party.released) throw fail(403, 'This party\'s film has already been developed.');
+  if (!party) throw fail(404, 'That gathering code was not found. Open the invite link again.');
+  if (party.released) throw fail(403, 'This gathering\'s film has already been developed.');
 
   const emailNorm = normalizeEmail(guestEmail);
   const verifyOn = process.env.REQUIRE_VERIFY !== 'false';

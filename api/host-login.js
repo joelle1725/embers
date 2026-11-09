@@ -15,7 +15,7 @@ module.exports = handler('POST', async (req, res) => {
   // Same message for "no such party" and "wrong password".
   if (!party || !checkPassword(String(password || ''), party.host_pass_hash)) {
     await rateFail(ipKey, WIN); await rateFail(codeKey, WIN);
-    throw fail(401, 'Party code or password is wrong.');
+    throw fail(401, 'Gathering code or password is wrong.');
   }
   send(res, 200, { code: party.code, hostToken: signHostToken(party.id) });
 });
