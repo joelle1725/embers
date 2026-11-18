@@ -34,8 +34,17 @@ module.exports = handler(['GET', 'POST'], async (req, res) => {
     const key = String(req.query.k || '');
     const token = bearer(req);
     if (key) {
-      const { data } = await db().from('guests').select('name').eq('party_id', party.id).eq('gallery_key', key).maybeSingle();
-      if (data) viewer = data.name;
+      const { data } = await db().from('guests').select('id, name, gallery_opened_at, gallery_opens').eq('party_id', party.id).eq('gallery_key', key).maybeSingle();
+      if (data) {
+        viewer = data.name;
+        // Count opens from the personal emailed link, for the email experiment (only once released).
+        if (party.released) {
+          await db().from('guests').update({
+            gallery_opened_at: data.gallery_opened_at || new Date().toISOString(),
+            gallery_opens: (data.gallery_opens || 0) + 1,
+          }).eq('id', data.id);
+        }
+      }
     }
     if (viewer === null && token) {
       if (verifyHostToken(token) === party.id) { viewer = ''; isHost = true; }

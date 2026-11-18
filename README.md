@@ -73,6 +73,11 @@ Gmail SMTP via nodemailer (join codes, gallery emails)
 - **Auth without accounts:** guests get a session token after email verification. Hosts log in with the gathering code and a password (scrypt hashed) and receive an HMAC signed token.
 - **Privacy:** photos sit in a private bucket and are only served through short-lived signed links. Row level security is on with no public policies.
 
+## Data and experimentation
+
+- **SQL analytics:** [`analytics/queries.sql`](analytics/queries.sql) holds the queries I run on the Supabase Postgres data: roll use per gathering, join funnel, time to first photo, photo concentration and gallery open rate.
+- **A/B test:** [`docs/experiment.md`](docs/experiment.md) sets up a test of the gallery email (plain subject vs. a personal photo count), with a decision rule written before the run and a two proportion z-test in SQL. Results are added after real gatherings.
+
 ## Known limits
 
 - Emails come from a Gmail account for now, so they can land in spam in a first test. The fix is a verified domain with a transactional email service such as Resend.

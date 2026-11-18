@@ -102,3 +102,9 @@ begin
   return v;
 end;
 $$;
+
+-- Email experiment tracking (run this block if you set up the database earlier).
+alter table guests add column if not exists gallery_variant text;        -- 'A' or 'B', set when the gallery email is first sent
+alter table guests add column if not exists emailed_at timestamptz;      -- when that first email went out
+alter table guests add column if not exists gallery_opened_at timestamptz; -- first open from the emailed link
+alter table guests add column if not exists gallery_opens int not null default 0;
