@@ -43,7 +43,7 @@ I played product owner and builder: framing the problem, researching competitors
 
 **Guests**
 - Join from a shared link with a link preview that shows the gathering name
-- Camera with four film looks (classic disposable, golden hour, cool 35mm, black and white). The host sets the default and guests can switch. The look is baked into each photo with light film grain. An orange date stamp is optional: a Date button turns it on or off, and the choice is remembered on that phone
+- Camera with four film looks (classic disposable, golden hour, cool 35mm, black and white). Guests pick their own look and the camera remembers it on that phone. The look is baked into each photo with light film grain. An orange date stamp is optional: a Date button turns it on or off, and the choice is remembered on that phone
 - Flash: real torch on Android back cameras, a white screen glow on the front camera, and a simulated flash look on iPhone back cameras, where Safari cannot reach the torch
 - 10 shots per guest counted in the database, so refreshing or re-entering an email never resets it. A failed upload does not use up a shot
 - Warning for in-app browsers (Instagram, Snapchat) with steps to open Safari or Chrome
@@ -105,7 +105,7 @@ Turn on 2-step verification on a Google account, then create an App Password at 
 3. Redeploy after adding variables.
 
 **4. Run a gathering**
-Go to `/host`, create the gathering, set the end time and film look, and send the invite link to the group chat. The next day, log in and press **Send the gallery**.
+Go to `/host`, create the gathering, set the end time, and send the invite link to the group chat. The next day, log in and press **Send the gallery**.
 
 ## Test checklist
 
