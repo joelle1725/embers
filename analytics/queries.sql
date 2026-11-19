@@ -1,7 +1,8 @@
 -- Embers analytics. Run in Supabase: SQL Editor > New query.
 -- Tables: parties, guests, photos. "Verified" means the guest confirmed the emailed 6 digit code.
 
--- 1. Guests, photos and use of the roll per gathering
+-- 1. Roll use per gathering
+-- Question: is the 10 shot roll the right size?
 select p.code, p.name,
        count(distinct g.id)                                  as joined,
        count(distinct g.id) filter (where g.verified)        as verified,
@@ -14,7 +15,8 @@ left join photos ph on ph.party_id = p.id
 group by p.id
 order by p.created_at desc;
 
--- 2. Join funnel: signed up, verified the code, took at least one photo
+-- 2. Join funnel
+-- Question: where do guests drop off at the door (signed up, verified the code, took a photo)?
 select p.code,
        count(*)                                              as signed_up,
        count(*) filter (where g.verified)                    as verified,
@@ -24,12 +26,14 @@ select p.code,
 from parties p join guests g on g.party_id = p.id
 group by p.id;
 
--- 3. Roll use: how many guests stop at each shot count (histogram)
+-- 3. Shots used histogram
+-- Question: what is the full spread of shots used, not just the average?
 select shots_used, count(*) as guests
 from guests where verified
 group by shots_used order by shots_used;
 
--- 4. Time from sign up to first photo, per guest (median and 90th percentile, in minutes)
+-- 4. Time to first photo
+-- Question: is joining fast enough? Median and 90th percentile, in minutes.
 with first_shot as (
   select g.id, g.created_at, min(ph.taken_at) as first_photo
   from guests g join photos ph on ph.guest_id = g.id
@@ -40,7 +44,8 @@ select count(*) as guests,
        round((percentile_cont(0.9) within group (order by extract(epoch from first_photo - created_at)) / 60)::numeric, 1) as p90_min
 from first_shot;
 
--- 5. Photo concentration: share of a gathering's photos taken by its top 3 photographers
+-- 5. Photo share of top 3
+-- Question: do one or two people take most of the photos?
 with per_guest as (
   select party_id, guest_id, count(*) as n,
          row_number() over (partition by party_id order by count(*) desc) as rnk
@@ -52,7 +57,8 @@ select p.code,
 from per_guest join parties p on p.id = per_guest.party_id
 group by p.code;
 
--- 6. Gallery open rate within 48 hours of the email, by gathering
+-- 6. Gallery open rate within 48 hours
+-- Question: do guests actually come back for the photos after the email?
 select p.code,
        count(*) filter (where g.emailed_at is not null)       as emailed,
        count(*) filter (where g.gallery_opened_at <= g.emailed_at + interval '48 hours') as opened_48h,
@@ -61,7 +67,9 @@ select p.code,
 from parties p join guests g on g.party_id = p.id
 group by p.id;
 
--- 7. Email experiment: A (plain subject) vs B (personal photo count). Metric: opened within 48 hours.
+-- 7. Email experiment A vs B
+-- Question: does a personal photo count in the email get more guests to open the gallery?
+-- A is the plain subject, B is the personal photo count. Metric: opened within 48 hours.
 --    Two proportion z-test. |z| above 1.96 is significant at the 95% level.
 with v as (
   select gallery_variant as variant,
