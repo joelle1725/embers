@@ -50,8 +50,8 @@ I played product owner and builder: framing the problem, researching competitors
 - Gallery sign in with gathering code plus email, or the personal link in the email. Search by name, or tap **My photos**. Names are an overlay, so saved photos are clean
 
 **Hosts**
-- Create a gathering, get a code and invite link (QR code optional)
-- Pick a clock time when the roll ends, or end it right now, or reopen it
+- Create a gathering, get a code and invite link
+- Pick a clock time when the roll ends, or end it right now, or reopen it. The page runs top to bottom: invite link, end time, then End the roll and Send the gallery side by side
 - See guests and shots used, then press **Send the gallery** to email everyone
 - Delete a photo after release. The file is removed from storage first, so it frees space, and the guest does not get the shot back
 

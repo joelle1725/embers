@@ -12,14 +12,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <style>
   .linkbox { background: #0a0a0a; color: #d5d5d5; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-family: var(--mono); font-size: 14px; word-break: break-all; margin: 10px 0 0; text-align: left; }
   .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
   .row.left { justify-content: flex-start; }
-  .endnow { text-align: center; margin: -4px 0 4px; }
-  .endnow button { max-width: 320px; margin-top: 0; }
-  .endnow p { margin: 8px 0 0; }
+  .pair { display: grid; grid-template-columns: 1fr; gap: 0 16px; }
+  @media (min-width: 560px) { .pair { grid-template-columns: 1fr 1fr; } }
+  .pair .card { display: flex; flex-direction: column; }
+  .pair .card > button, .pair .card > .btn { margin-top: auto; }
+  .pair .card > p { margin: 0 0 16px; }
+  .pair .card > .msg { min-height: 0; margin: 0; }
   details summary { cursor: pointer; color: var(--pink-soft); font-size: 14px; margin-top: 14px; }
   .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: rgba(255,20,147,0.15); color: var(--pink-soft); border: 1px solid rgba(255,20,147,0.4); }
   .pill.closed { background: #353535; color: #d5d5d5; border-color: #353535; }
@@ -80,17 +82,6 @@
     <p class="small muted" style="margin:16px 0 0;">Gathering code</p>
     <div class="code" id="pCode"></div>
     <p class="small muted" style="margin:0;">Guests also need this code (and their email) to open the gallery.</p>
-    <details>
-      <summary>Show a QR code for the same link</summary>
-      <canvas id="qr" style="margin-top:12px;border-radius:12px;"></canvas>
-      <div class="row"><button id="dlQr" class="ghost small" type="button">Download QR</button></div>
-    </details>
-  </div>
-
-  <div class="endnow" id="endNowWrap">
-    <button id="endNow" class="ghost" type="button">End the roll now</button>
-    <button id="reopen" class="ghost hidden" type="button">Reopen the roll</button>
-    <p class="small muted" id="endNowNote">Closes the camera for everyone right away. You can still send the gallery afterwards.</p>
   </div>
 
   <div class="card">
@@ -98,16 +89,26 @@
     <p class="muted small" style="margin:0 0 4px;">After this time the camera closes for everyone, even if they have shots left. <span id="endState"></span></p>
     <label for="endsAt">Camera closes at</label>
     <input id="endsAt" type="datetime-local">
-    <div class="row left" id="presets">
-      <button class="ghost small" type="button" data-h="23">11 PM</button>
-      <button class="ghost small" type="button" data-h="24">Midnight</button>
-      <button class="ghost small" type="button" data-h="26">2 AM</button>
-    </div>
     <div class="row left">
       <button id="saveEnd" class="small" type="button">Save end time</button>
-      <button id="clearEnd" class="ghost small" type="button">Remove end time</button>
     </div>
     <div id="endMsg" class="msg"></div>
+  </div>
+
+  <div class="pair">
+    <div class="card" id="endNowWrap">
+      <h2>End the roll now</h2>
+      <p class="muted small" id="endNowNote">Closes the camera for everyone right away. You can still send the gallery afterwards.</p>
+      <button id="endNow" class="ghost" type="button">End the roll now</button>
+      <button id="reopen" class="ghost hidden" type="button">Reopen the roll</button>
+    </div>
+    <div class="card">
+      <h2>Develop the film</h2>
+      <p class="muted small">This closes the camera for everyone and emails each guest a link to the shared gallery. You can press it again later to re-send the emails.</p>
+      <button id="release" class="danger" type="button">Send the gallery</button>
+      <div id="relMsg" class="msg"></div>
+      <a id="openGallery" class="btn ghost hidden" href="#" target="_blank" rel="noopener">Open the gallery</a>
+    </div>
   </div>
 
   <div class="card">
@@ -129,13 +130,6 @@
     <p class="muted small"><span id="photoCount">0</span> photos taken so far. Photos stay hidden until you release them.</p>
   </div>
 
-  <div class="card">
-    <h2>Develop the film</h2>
-    <p class="muted small">This closes the camera for everyone and emails each guest a link to the shared gallery. You can press it again later to re-send the emails.</p>
-    <button id="release" class="danger" type="button">Send the gallery</button>
-    <div id="relMsg" class="msg"></div>
-    <a id="openGallery" class="btn ghost hidden" href="#" target="_blank" rel="noopener">Open the gallery</a>
-  </div>
 </div>
 
 <script src="/common.js"></script>
@@ -243,21 +237,12 @@
       await refresh(true);
     } catch (x) { err($('endMsg'), x); }
   }
-  $('presets').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
-    const hours = Number(b.dataset.h);
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    d.setHours(hours);
-    if (d.getTime() < Date.now()) d.setDate(d.getDate() + 1);
-    $('endsAt').value = toLocalInput(d);
-  }));
   $('saveEnd').addEventListener('click', () => {
     if (!$('endsAt').value) { err($('endMsg'), new Error('Pick a date and time first.')); return; }
     const t = new Date($('endsAt').value);
     if (t.getTime() < Date.now() && !confirm('That time has already passed, so the camera will close right away. Save it anyway?')) return;
     saveEnds({ endsAt: t.toISOString() }, 'Saved. The camera will close at ' + t.toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + '.');
   });
-  $('clearEnd').addEventListener('click', () => { $('endsAt').value = ''; saveEnds({ endsAt: null }, 'Removed. The camera stays open until you send the gallery.'); });
   $('endNow').addEventListener('click', () => {
     if (confirm('Close the camera for everyone now? You can still send the gallery later.')) saveEnds({ closeNow: true }, 'The roll has ended.');
   });
@@ -286,7 +271,6 @@
     $('pCode').textContent = p.code;
     const url = location.origin + '/?p=' + p.code;
     $('joinUrl').textContent = url;
-    if (window.QRCode) QRCode.toCanvas($('qr'), url, { width: 240, margin: 2, color: { dark: '#0a0a0a', light: '#d5d5d5' } }, () => {});
 
     if (forceEnd || !editingEnd) $('endsAt').value = p.endsAt ? toLocalInput(p.endsAt) : '';
     if (forceEnd) editingEnd = false;
@@ -334,13 +318,6 @@
       navigator.share({ title: name, text: 'Join ' + name + ' on Embers. Take 10 shots on a disposable camera.', url: $('joinUrl').textContent }).catch(() => {});
     });
   }
-
-  $('dlQr').addEventListener('click', () => {
-    const a = document.createElement('a');
-    a.href = $('qr').toDataURL('image/png');
-    a.download = 'embers-qr.png';
-    a.click();
-  });
 
   $('release').addEventListener('click', async () => {
     if (!current) return;
