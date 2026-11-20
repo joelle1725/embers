@@ -79,10 +79,10 @@
   .shutter:active::after { transform: scale(0.9); }
   .shutter:focus-visible { outline-offset: 5px; }
   .shutter:disabled { opacity: 0.4; }
-  .side { width: 56px; height: 56px; min-height: 0; margin: 0; padding: 0; display: grid; place-items: center; border-radius: 50%; background: #2D2A3A; border: 1.5px solid #46425A; color: var(--ink); box-shadow: none; }
+  .side { width: 56px; height: 56px; min-height: 0; margin: 0; padding: 0; display: grid; place-items: center; border-radius: 50%; background: #2D2A3A; border: 2px solid var(--accent); color: var(--ink); box-shadow: none; }
   .side:hover { background: #3A3649; }
   .side svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
-  .side.on { background: var(--lilac); border-color: var(--lilac); color: #221F2D; }
+  .side.on { background: var(--accent); border-color: var(--accent); color: #221F2D; }
   .side.on svg { fill: currentColor; }
   .fullflash { position: fixed; inset: 0; background: #fff; z-index: 6; opacity: 0; pointer-events: none; transition: opacity 0.12s; }
   .fullflash.on { opacity: 1; }
