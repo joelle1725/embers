@@ -43,12 +43,13 @@ module.exports = handler('POST', async (req, res) => {
     return {
       to: g.email,
       subject,
-      html: `<div style="font-family:Georgia,serif;max-width:480px;margin:0 auto;padding:28px;color:#d5d5d5;background:#0a0a0a;border:1px solid #353535;border-radius:16px">
-        <h2 style="margin:0 0 12px">Your film is developed</h2>
+      html: `<div style="background:#F2EEF6;padding:20px 12px"><div style="font-family:'Plus Jakarta Sans','Helvetica Neue',Arial,sans-serif;max-width:480px;margin:0 auto;padding:28px;color:#221F2D;background:#FCFAFD;border:1px solid #D8D7E1;border-radius:18px;line-height:1.5">
+        <p style="font-family:Outfit,'Arial Rounded MT Bold','Helvetica Neue',Arial,sans-serif;font-weight:800;font-size:15px;margin:0 0 14px;color:#221F2D">Embers</p>
+        <h2 style="font-family:Outfit,'Arial Rounded MT Bold','Helvetica Neue',Arial,sans-serif;font-weight:800;font-size:24px;line-height:1.15;margin:0 0 12px;color:#221F2D">Your film is developed</h2>
         <p>${intro}</p>
-        <p><a href="${link}" style="display:inline-block;background:#ff1493;color:#0a0a0a;padding:13px 24px;border-radius:999px;text-decoration:none;font-weight:bold">See the photos</a></p>
-        <p style="font-size:13px;color:#9a9a9a">This link is just for you. Everyone from the gathering can see the shared gallery, so please don't forward it outside the group. If the link ever stops working, open the gallery and sign in with the party code (${escapeHtml(party.code)}) and this email address.</p>
-      </div>`,
+        <p><a href="${link}" style="display:inline-block;background:#FF4FA8;color:#221F2D;padding:14px 26px;border-radius:999px;text-decoration:none;font-family:Outfit,'Arial Rounded MT Bold','Helvetica Neue',Arial,sans-serif;font-weight:bold;font-size:16px">See the photos</a></p>
+        <p style="font-size:13px;color:#5F5C6B">This link is just for you. Everyone from the gathering can see the shared gallery, so please don't forward it outside the group. If the link ever stops working, open the gallery and sign in with the gathering code (${escapeHtml(party.code)}) and this email address.</p>
+      </div></div>`,
     };
   });
 

@@ -3,28 +3,30 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#0a0a0a">
+<meta name="theme-color" content="#221F2D">
 <title>Embers Camera</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
 <style>
-  :root { --mono: "DM Mono", ui-monospace, "SF Mono", Menlo, monospace; }
+  /* The camera page stays dark so the live view is easy to frame: Ink behind, chrome and lilac controls, pink shutter. */
+  :root { --bg: #221F2D; --card: #2D2A3A; --ink: #F2EEF6; --muted: #BDBACB; --chrome: #46425A; --line: #46425A; --link: #C9BDF4; --on-accent: #221F2D; }
   html, body { height: 100%; }
-  body { padding: max(10px, env(safe-area-inset-top)) 0 max(14px, env(safe-area-inset-bottom)); justify-content: space-between; overflow: hidden; background-image: radial-gradient(520px 300px at 50% -6%, rgba(255,20,147,0.13), rgba(255,20,147,0) 70%); }
+  body { padding: max(10px, env(safe-area-inset-top)) 0 max(14px, env(safe-area-inset-bottom)); justify-content: space-between; overflow: hidden; background-image: radial-gradient(520px 300px at 50% -6%, rgba(201,189,244,0.22), rgba(201,189,244,0) 70%); }
+  button:focus-visible, a:focus-visible { outline: 3px solid var(--lilac); outline-offset: 3px; }
 
   .top { width: 100%; max-width: 520px; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 18px; gap: 12px; }
-  .party { font-family: var(--serif); font-weight: 600; font-size: 18px; color: #ececec; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.15; }
+  .party { font-family: var(--display); font-weight: 800; font-size: 19px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.15; letter-spacing: -0.01em; }
   .who { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .closes { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; padding-bottom: 2px; }
 
   .viewfinder {
-    position: relative; overflow: hidden; background: #000; border-radius: 6px;
-    aspect-ratio: 3 / 4; width: min(100vw - 20px, calc((100dvh - 262px) * 0.75));
-    box-shadow: 0 0 0 1px #262626, 0 18px 40px rgba(0,0,0,0.6);
+    position: relative; overflow: hidden; background: #000; border-radius: 18px;
+    aspect-ratio: 3 / 4; width: min(100vw - 20px, calc((100dvh - 276px) * 0.75));
+    box-shadow: 0 0 0 2px #46425A, 0 18px 40px rgba(0,0,0,0.45);
   }
   video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   video.mirror { transform: scaleX(-1); }
@@ -38,59 +40,59 @@
     animation: jitter 0.4s steps(4) infinite;
   }
   @keyframes jitter { 0% { transform: translate(0,0); } 25% { transform: translate(-3%,2%); } 50% { transform: translate(2%,-3%); } 75% { transform: translate(-2%,-1%); } 100% { transform: translate(1%,3%); } }
-  /* Viewfinder corner marks */
-  .marks { position: absolute; inset: 14px; pointer-events: none; opacity: 0.7;
-    --m: rgba(255,255,255,0.75);
+  /* Viewfinder corner marks, in frame lime */
+  .marks { position: absolute; inset: 16px; pointer-events: none; opacity: 0.9;
+    --m: #E4F186;
     background:
-      linear-gradient(var(--m),var(--m)) 0 0 / 18px 1.5px no-repeat, linear-gradient(var(--m),var(--m)) 0 0 / 1.5px 18px no-repeat,
-      linear-gradient(var(--m),var(--m)) 100% 0 / 18px 1.5px no-repeat, linear-gradient(var(--m),var(--m)) 100% 0 / 1.5px 18px no-repeat,
-      linear-gradient(var(--m),var(--m)) 0 100% / 18px 1.5px no-repeat, linear-gradient(var(--m),var(--m)) 0 100% / 1.5px 18px no-repeat,
-      linear-gradient(var(--m),var(--m)) 100% 100% / 18px 1.5px no-repeat, linear-gradient(var(--m),var(--m)) 100% 100% / 1.5px 18px no-repeat; }
-  .stamp { position: absolute; right: 26px; bottom: 24px; font-family: var(--mono); font-weight: 500; color: #ff9a3c; font-size: 14px; text-shadow: 0 0 6px rgba(255,120,0,0.7); pointer-events: none; }
+      linear-gradient(var(--m),var(--m)) 0 0 / 20px 2px no-repeat, linear-gradient(var(--m),var(--m)) 0 0 / 2px 20px no-repeat,
+      linear-gradient(var(--m),var(--m)) 100% 0 / 20px 2px no-repeat, linear-gradient(var(--m),var(--m)) 100% 0 / 2px 20px no-repeat,
+      linear-gradient(var(--m),var(--m)) 0 100% / 20px 2px no-repeat, linear-gradient(var(--m),var(--m)) 0 100% / 2px 20px no-repeat,
+      linear-gradient(var(--m),var(--m)) 100% 100% / 20px 2px no-repeat, linear-gradient(var(--m),var(--m)) 100% 100% / 2px 20px no-repeat; }
+  .stamp { position: absolute; right: 26px; bottom: 24px; font-family: var(--mono); font-weight: 700; color: #ff9a3c; font-size: 14px; text-shadow: 0 0 6px rgba(255,120,0,0.7); pointer-events: none; }
   .shutterflash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
   .shutterflash.go { animation: flash 0.25s ease-out; }
   @keyframes flash { 0% { opacity: 0.85; } 100% { opacity: 0; } }
 
-  /* The roll: one frame per shot. Lit frames are unexposed, dark ones are used. */
+  /* The roll: one frame per shot. Lime frames are unexposed, dark ones are used. */
   .roll { width: min(100vw - 20px, 520px); display: flex; align-items: center; gap: 12px; }
-  .strip { flex: 1; display: flex; gap: 4px; padding: 9px 6px; border-radius: 4px; background: #1a1a1a;
-    background-image: radial-gradient(circle, #0a0a0a 1.6px, transparent 2px), radial-gradient(circle, #0a0a0a 1.6px, transparent 2px);
+  .strip { flex: 1; display: flex; gap: 4px; padding: 9px 6px; border-radius: 8px; background: #2D2A3A;
+    background-image: radial-gradient(circle, #221F2D 1.6px, transparent 2px), radial-gradient(circle, #221F2D 1.6px, transparent 2px);
     background-size: 9px 6px, 9px 6px; background-position: 0 1px, 0 calc(100% - 1px); background-repeat: repeat-x, repeat-x; }
-  .frame { flex: 1; height: 20px; border-radius: 2px; background: var(--accent); box-shadow: 0 0 8px rgba(255,20,147,0.45); transition: background 0.25s, box-shadow 0.25s; }
-  .frame.used { background: #2b2b2b; box-shadow: none; }
+  .frame { flex: 1; height: 20px; border-radius: 3px; background: var(--lime); transition: background 0.25s; }
+  .frame.used { background: #46425A; }
   .frame.pop { animation: pop 0.35s ease-out; }
-  @keyframes pop { 0% { background: #fff; box-shadow: 0 0 14px #fff; } 100% { background: #2b2b2b; box-shadow: none; } }
-  .count { font-family: var(--mono); font-size: 13px; color: var(--muted); min-width: 56px; text-align: right; white-space: nowrap; }
-  .count b { font-size: 22px; font-weight: 500; color: var(--ink); }
+  @keyframes pop { 0% { background: #fff; } 100% { background: #46425A; } }
+  .count { font-family: var(--mono); font-size: 13px; color: var(--muted); min-width: 64px; text-align: right; white-space: nowrap; }
+  .count b { font-size: 24px; font-weight: 700; color: var(--lime); }
 
-  .looksbar { width: 100%; max-width: 520px; display: flex; gap: 16px; justify-content: center; align-items: center; padding: 0 12px; }
-  .lk { width: auto; margin: 0; padding: 6px 2px 7px; font-size: 14px; font-weight: 500; background: transparent; color: #7c7c7c; border: 0; border-bottom: 2px solid transparent; border-radius: 0; box-shadow: none; }
+  .looksbar { width: 100%; max-width: 520px; display: flex; gap: 12px; justify-content: center; align-items: center; padding: 0 12px; }
+  .lk { width: auto; min-height: 44px; margin: 0; padding: 8px 6px; font-family: var(--sans); font-size: 14px; font-weight: 600; background: transparent; color: var(--muted); border: 0; border-bottom: 3px solid transparent; border-radius: 0; box-shadow: none; }
   .lk:hover { background: transparent; color: var(--ink); }
-  .lk.on { color: #f2f2f2; border-bottom-color: var(--accent); }
-  .lk.date { margin-left: 8px; padding-left: 14px; border-left: 1px solid #2a2a2a; }
-  .lk.date.on { border-bottom-color: transparent; color: var(--pink-soft); }
+  .lk.on { color: var(--ink); border-bottom-color: var(--lilac); }
+  .lk.date { margin-left: 6px; padding-left: 14px; border-left: 1px solid #46425A; }
+  .lk.date.on { border-bottom-color: transparent; color: var(--lilac); }
 
   .controls { width: 100%; max-width: 420px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; }
-  .shutter { width: 80px; height: 80px; margin: 0; padding: 0; border-radius: 50%; background: transparent; border: 2px solid #d5d5d5; box-shadow: none; position: relative; }
-  .shutter::after { content: ''; position: absolute; inset: 6px; border-radius: 50%; background: #e6e6e6; transition: transform 0.1s, background 0.1s; }
+  .shutter { width: 84px; height: 84px; margin: 0; padding: 0; border-radius: 50%; background: transparent; border: 3px solid #D8D7E1; box-shadow: none; position: relative; }
+  .shutter::after { content: ''; position: absolute; inset: 6px; border-radius: 50%; background: var(--gloss), linear-gradient(180deg, #FF6DB9 0%, #FF4FA8 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 2px 8px rgba(255,79,168,0.35); transition: transform 0.1s; }
   .shutter:hover { background: transparent; }
-  .shutter:active::after { transform: scale(0.88); background: var(--accent); }
-  .shutter:disabled { opacity: 0.35; }
-  .side { width: 52px; height: 52px; margin: 0; padding: 0; display: grid; place-items: center; border-radius: 50%; background: #151515; border: 1px solid #262626; color: var(--ink); box-shadow: none; }
-  .side:hover { background: #1c1c1c; }
-  .side svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-  .side.on { background: var(--accent); border-color: var(--accent); color: #0a0a0a; box-shadow: 0 0 16px rgba(255,20,147,0.5); }
+  .shutter:active::after { transform: scale(0.9); }
+  .shutter:focus-visible { outline-offset: 5px; }
+  .shutter:disabled { opacity: 0.4; }
+  .side { width: 56px; height: 56px; min-height: 0; margin: 0; padding: 0; display: grid; place-items: center; border-radius: 50%; background: #2D2A3A; border: 1.5px solid #46425A; color: var(--ink); box-shadow: none; }
+  .side:hover { background: #3A3649; }
+  .side svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  .side.on { background: var(--lilac); border-color: var(--lilac); color: #221F2D; }
   .side.on svg { fill: currentColor; }
   .fullflash { position: fixed; inset: 0; background: #fff; z-index: 6; opacity: 0; pointer-events: none; transition: opacity 0.12s; }
   .fullflash.on { opacity: 1; }
 
-  .toast { position: fixed; left: 50%; top: 68px; transform: translateX(-50%); background: #000000e6; color: var(--ink); padding: 8px 14px; border-radius: 20px; font-size: 14px; opacity: 0; transition: opacity 0.2s; pointer-events: none; max-width: 90%; text-align: center; z-index: 5; }
+  .toast { position: fixed; left: 50%; top: 68px; transform: translateX(-50%); background: #2D2A3A; border: 1px solid #46425A; color: var(--ink); padding: 9px 16px; border-radius: 999px; font-size: 14px; font-weight: 500; opacity: 0; transition: opacity 0.2s; pointer-events: none; max-width: 90%; text-align: center; z-index: 5; box-shadow: 0 8px 24px rgba(0,0,0,0.35); }
   .toast.show { opacity: 1; }
-  .toast.err { background: #5a1020e6; }
+  .toast.err { background: #7A1D33; border-color: #B4445F; }
 
   .overlay { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28px; text-align: center; z-index: 10; }
   .overlay .btn, .overlay button { max-width: 320px; }
-  @media (prefers-reduced-motion: reduce) { .grain { animation: none; } .frame.pop { animation: none; } }
 </style>
 </head>
 <body>

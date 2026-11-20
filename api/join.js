@@ -69,10 +69,11 @@ module.exports = handler('POST', async (req, res) => {
   const result = await sendMany([{
     to: guestEmail,
     subject: `Your code for ${party.name}: ${verifyCode}`,
-    html: `<div style="font-family:Georgia,serif;max-width:420px;margin:0 auto;padding:24px;color:#d5d5d5;background:#0a0a0a;border:1px solid #353535;border-radius:16px">
-      <p>Hi ${escapeHtml(guestName)}, your code for <b>${escapeHtml(party.name)}</b> is:</p>
-      <p style="font-size:32px;letter-spacing:6px;margin:12px 0;color:#ff1493"><b>${verifyCode}</b></p>
-      <p style="font-size:13px;color:#9a9a9a">It expires in ${CODE_MINUTES} minutes.</p></div>`,
+    html: `<div style="background:#F2EEF6;padding:20px 12px"><div style="font-family:'Plus Jakarta Sans','Helvetica Neue',Arial,sans-serif;max-width:420px;margin:0 auto;padding:24px;color:#221F2D;background:#FCFAFD;border:1px solid #D8D7E1;border-radius:18px;line-height:1.5">
+      <p style="font-family:Outfit,'Arial Rounded MT Bold','Helvetica Neue',Arial,sans-serif;font-weight:800;font-size:18px;margin:0 0 14px;color:#221F2D">Embers</p>
+      <p style="margin:0">Hi ${escapeHtml(guestName)}, your code for <b>${escapeHtml(party.name)}</b> is:</p>
+      <p style="margin:14px 0"><span style="display:inline-block;font-family:'Space Mono','Courier New',monospace;font-weight:bold;font-size:30px;letter-spacing:6px;color:#221F2D;background:#D8D7E1;padding:8px 18px;border-radius:14px">${verifyCode}</span></p>
+      <p style="font-size:13px;color:#5F5C6B;margin:0">It expires in ${CODE_MINUTES} minutes.</p></div></div>`,
   }]);
   if (result.failed.length) throw fail(500, 'Could not send the email. Check the address and try again.');
 
