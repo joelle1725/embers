@@ -20,7 +20,7 @@
   --mono: "Space Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --radius: 16px;
   --shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 8px 24px rgba(34, 31, 45, 0.08);
-  --gloss: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 55%);
+  --gloss: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 50%);
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -71,19 +71,19 @@ input:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 4px var
 .check input { margin-top: 2px; width: 20px; height: 20px; flex: none; accent-color: var(--ink); }
 
 button, .btn {
-  display: inline-block; width: 100%; min-height: 50px; margin-top: 16px; padding: 13px 20px;
+  display: inline-block; width: 100%; min-height: 50px; margin-top: 16px; padding: 13px 22px;
   font-size: 16px; font-family: var(--display); font-weight: 700; letter-spacing: 0.005em; text-align: center; text-decoration: none; line-height: 1.2;
-  background: var(--gloss), linear-gradient(180deg, #FF6DB9 0%, var(--accent) 100%); color: var(--on-accent);
+  background: var(--gloss), var(--accent); color: var(--on-accent);
   border: 0; border-radius: 999px; cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 1px 2px rgba(34, 31, 45, 0.2), 0 8px 18px rgba(255, 79, 168, 0.28);
+  box-shadow: 0 1px 2px rgba(34, 31, 45, 0.16), 0 4px 10px rgba(255, 79, 168, 0.22);
 }
-button:hover, .btn:hover { background: var(--gloss), linear-gradient(180deg, #FF5AAF 0%, #F23F9A 100%); }
+button:hover, .btn:hover { background: var(--gloss), #F23F9A; }
 button:active, .btn:active { transform: translateY(1px); }
 button:focus-visible, .btn:focus-visible, summary:focus-visible, a:focus-visible, select:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
 button:disabled { opacity: 0.55; cursor: default; }
 /* Every button is pink: solid for the main and small actions, a soft pink fill with a deeper pink outline for secondary ones. */
-button.ghost, .btn.ghost { background: #FFE6F3; color: var(--ink); border: 1.5px solid #E02A8C; box-shadow: none; }
-button.ghost:hover, .btn.ghost:hover { background: #FFD0E8; border-color: #C21E7A; box-shadow: none; }
+button.ghost, .btn.ghost { background: #fff; color: var(--ink); border: 1.5px solid #E02A8C; box-shadow: none; }
+button.ghost:hover, .btn.ghost:hover { background: #FFF0F8; border-color: #C21E7A; box-shadow: none; }
 button.danger { }
 button.small, .btn.small { width: auto; min-height: 40px; margin-top: 0; padding: 9px 18px; font-size: 14px; }
 
@@ -102,9 +102,9 @@ th { color: var(--muted); font-family: var(--mono); font-weight: 400; font-size:
 
 .tabs { display: flex; gap: 8px; margin-bottom: 4px; }
 .tabs button { margin-top: 0; min-height: 46px; }
-.tabs button:not(.on) { background: #FFE6F3; color: var(--ink); border: 1.5px solid #E02A8C; box-shadow: none; }
-.tabs button:not(.on):hover { background: #FFD0E8; }
-.tabs button.on { outline: 0; }
+.tabs button:not(.on) { background: #fff; color: var(--ink); border: 1.5px solid #E02A8C; box-shadow: none; }
+.tabs button:not(.on):hover { background: #FFF0F8; }
+.tabs button.on { box-shadow: 0 1px 2px rgba(34, 31, 45, 0.16); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
