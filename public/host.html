@@ -154,22 +154,26 @@
 
   $('createForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    $('createMsg').className = 'msg'; $('createMsg').textContent = 'Creating...';
+    const btn = $('createForm').querySelector('button[type="submit"]');
+    $('createMsg').className = 'msg'; $('createMsg').textContent = ''; btn.disabled = true;
     try {
       const r = await api('/api/party-create', { method: 'POST', body: { name: $('cName').value, hostPassword: $('cPass').value, createKey: $('cKey').value } });
       token = r.hostToken; localStorage.setItem(KEY, token);
-      enter();
-    } catch (x) { err($('createMsg'), x); }
+      await enter();
+      btn.disabled = false;
+    } catch (x) { err($('createMsg'), x); btn.disabled = false; }
   });
 
   $('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    $('loginMsg').className = 'msg'; $('loginMsg').textContent = 'Logging in...';
+    const btn = $('loginForm').querySelector('button[type="submit"]');
+    $('loginMsg').className = 'msg'; $('loginMsg').textContent = ''; btn.disabled = true;
     try {
       const r = await api('/api/host-login', { method: 'POST', body: { code: $('lCode').value, password: $('lPass').value } });
       token = r.hostToken; localStorage.setItem(KEY, token);
-      enter();
-    } catch (x) { err($('loginMsg'), x); }
+      await enter();
+      btn.disabled = false;
+    } catch (x) { err($('loginMsg'), x); btn.disabled = false; }
   });
 
   $('logout').addEventListener('click', () => {
