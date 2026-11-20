@@ -362,7 +362,7 @@
       if (me.maxShots) maxShots = me.maxShots;
       hostLook = me.filmLook;
       let mine = ''; try { mine = localStorage.getItem('filmcam_look') || ''; } catch (e) {}
-      setLook(LOOKS[mine] ? mine : hostLook);
+      setLook(LOOKS[mine] ? mine : 'classic');
       closed = me.closed;
       if (me.released) {
         stopCamera();
