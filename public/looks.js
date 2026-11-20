@@ -1,29 +1,29 @@
-// Film looks. Used by the camera (live preview + saved photo) and by the host page (previews).
+// Film looks. Used by the camera (live preview + saved photo).
 (function () {
   const LOOKS = {
     classic: {
       name: 'Classic disposable',
-      blurb: 'Warm, soft grain, faded blacks. The one-time-use camera feel.',
-      contrast: 1.1, mul: [1.07, 1.02, 0.88], gain: 0.9, lift: [16, 13, 10], grain: 26, sat: 1.0, vig: 0.5, stamp: '#ff9a3c',
-      css: { filter: 'contrast(1.08) saturate(1.1) sepia(0.2) brightness(1.03)', tint: 'rgba(255,150,50,0.10)', grain: 0.2 },
+      blurb: 'Natural color with a hint of warmth and very fine grain.',
+      contrast: 1.06, mul: [1.03, 1.01, 0.96], gain: 0.97, lift: [6, 5, 4], grain: 8, sat: 1.04, vig: 0.22, stamp: '#f2a65a',
+      css: { filter: 'contrast(1.05) saturate(1.05) sepia(0.06)', tint: 'rgba(255,170,90,0.05)', grain: 0.07 },
     },
     golden: {
       name: 'Golden hour',
-      blurb: 'Soft, honeyed and glowing. Flattering for faces and string lights.',
-      contrast: 0.98, mul: [1.12, 1.04, 0.82], gain: 0.88, lift: [26, 18, 9], grain: 18, sat: 1.12, vig: 0.42, stamp: '#ffb04a',
-      css: { filter: 'contrast(1.0) saturate(1.2) sepia(0.3) brightness(1.06)', tint: 'rgba(255,170,70,0.16)', grain: 0.15 },
+      blurb: 'Soft, warm light that flatters faces and string lights.',
+      contrast: 1.0, mul: [1.06, 1.02, 0.92], gain: 0.97, lift: [9, 6, 2], grain: 7, sat: 1.08, vig: 0.18, stamp: '#f2a65a',
+      css: { filter: 'contrast(1.0) saturate(1.1) sepia(0.12) brightness(1.03)', tint: 'rgba(255,185,100,0.08)', grain: 0.06 },
     },
     cool35: {
       name: 'Cool 35mm',
-      blurb: 'Cooler shadows and punchy color, like daylight film. No date stamp unless you add one.',
-      contrast: 1.12, mul: [0.97, 1.03, 1.06], gain: 0.92, lift: [8, 13, 18], grain: 22, sat: 1.0, vig: 0.4, stamp: null,
-      css: { filter: 'contrast(1.1) saturate(1.05) hue-rotate(-4deg) brightness(1.02)', tint: 'rgba(90,150,200,0.10)', grain: 0.18 },
+      blurb: 'Clean, slightly cool color with a little more contrast, like daylight film.',
+      contrast: 1.08, mul: [0.98, 1.01, 1.04], gain: 0.97, lift: [3, 5, 8], grain: 8, sat: 1.02, vig: 0.2, stamp: null,
+      css: { filter: 'contrast(1.06) saturate(1.03) hue-rotate(-3deg)', tint: 'rgba(100,150,200,0.05)', grain: 0.07 },
     },
     mono: {
       name: 'Black and white',
-      blurb: 'High contrast with a little grain. Timeless, a little dramatic.',
-      contrast: 1.22, mul: [1, 1, 1], gain: 0.95, lift: [10, 10, 10], grain: 34, sat: 0, vig: 0.55, stamp: null,
-      css: { filter: 'grayscale(1) contrast(1.2) brightness(1.03)', tint: 'rgba(0,0,0,0)', grain: 0.26 },
+      blurb: 'Clean black and white with soft contrast and fine grain.',
+      contrast: 1.14, mul: [1, 1, 1], gain: 0.97, lift: [5, 5, 5], grain: 12, sat: 0, vig: 0.28, stamp: null,
+      css: { filter: 'grayscale(1) contrast(1.12)', tint: 'rgba(0,0,0,0)', grain: 0.1 },
     },
   };
 
@@ -46,7 +46,8 @@
       r = lum + (r - lum) * L.sat; g = lum + (g - lum) * L.sat; b = lum + (b - lum) * L.sat;
       r *= L.mul[0]; g *= L.mul[1]; b *= L.mul[2];
       r = r * L.gain + L.lift[0]; g = g * L.gain + L.lift[1]; b = b * L.gain + L.lift[2];
-      const n = (Math.random() - 0.5) * L.grain;
+      // Grain is strongest in the midtones and fades in deep shadows and bright highlights, like real film.
+      const n = (Math.random() - 0.5) * L.grain * (1 - Math.min(Math.abs(lum - 128) / 190, 0.7));
       d[i] = clamp(r + n); d[i + 1] = clamp(g + n); d[i + 2] = clamp(b + n);
     }
     ctx.putImageData(img, 0, 0);
@@ -57,16 +58,13 @@
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w, h);
 
-    const stampOn = showStamp === undefined ? Boolean(L.stamp) : showStamp;
+    const stampOn = showStamp === undefined ? false : showStamp;
     if (stampOn) {
       ctx.font = Math.round(w * 0.036) + 'px "Courier New", monospace';
       ctx.textAlign = 'right';
       ctx.textBaseline = 'alphabetic';
-      ctx.shadowColor = 'rgba(255,120,0,0.8)';
-      ctx.shadowBlur = Math.round(w * 0.008);
-      ctx.fillStyle = L.stamp || '#ff9a3c';
+      ctx.fillStyle = L.stamp || '#f2a65a';
       ctx.fillText(stampText(date || new Date()), w - w * 0.05, h - w * 0.045);
-      ctx.shadowBlur = 0;
     }
   }
 
